@@ -111,25 +111,27 @@ local remote = game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9)
     :WaitForChild("Remote", 9e9)
     :WaitForChild("Event", 9e9)
 
--- Task 1: BlowBubble loop
 createCheckbox("Blow Bubble", false, function()
-    while taskStates["Blow Bubble"] do
-        local args = { [1] = "BlowBubble" }
-        remote:FireServer(unpack(args))
-        task.wait(0.1)
-    end
+    task.spawn(function()
+        while taskStates["Blow Bubble"] do
+            local args = { [1] = "BlowBubble" }
+            remote:FireServer(unpack(args))
+            task.wait(0.1)
+        end
+    end)
 end)
 
--- Task 2: Unlock Rift Chest loop
 createCheckbox("Open Island Chest", false, function()
-    while taskStates["Open Island Chest"] do
-        local args = {
-            [1] = "UnlockRiftChest",
-            [2] = "golden-chest"
-        }
-        remote:FireServer(unpack(args))
-        task.wait(0.1)
-    end
+    task.spawn(function()
+        while taskStates["Open Island Chest"] do
+            local args = {
+                [1] = "UnlockRiftChest",
+                [2] = "golden-chest"
+            }
+            remote:FireServer(unpack(args))
+            task.wait(0.1)
+        end
+    end)
 end)
 
 createCheckbox("Claim Chests", false, function()
@@ -141,16 +143,58 @@ createCheckbox("Claim Chests", false, function()
                 :WaitForChild("Remote", 9e9)
                 :WaitForChild("Event", 9e9)
 
-            -- Fire Infinity Chest
             remote:FireServer("ClaimChest", "Infinity Chest")
 
-            -- Fire Void Chest
             remote:FireServer("ClaimChest", "Void Chest", true)
 
-            -- Fire Giant Chest
             remote:FireServer("ClaimChest", "Giant Chest", true)
 
             task.wait(10)
         end
     end)
+end)
+
+afk_counter = 0
+
+createCheckbox("Anti AFK", false, function()
+    task.spawn(function()
+        while taskStates["Anti AFK"] do
+            local character = game.Players.LocalPlayer.Character
+            if character and character:FindFirstChild("Humanoid") then
+                if afk_counter % 2 == 0 then 
+                    character:SetPrimaryPartCFrame(character.PrimaryPart.CFrame * CFrame.new(0, 0, 0.1))
+                else
+                    character:SetPrimaryPartCFrame(character.PrimaryPart.CFrame * CFrame.new(0, 0, -0.1))
+                end
+            end
+
+            print("Simulating movement to prevent AFK kick.")
+
+            afk_counter = afk_counter + 1  
+            task.wait(600)  
+        end
+    end)
+end)
+
+createCheckbox("Auto Craft Potions", false, function() 
+    potionTypes = {"Lucky", "Speed", "Mythic", "Coins"}
+
+    for _, potion in potionTypes do
+        for i = 1, 5 do
+            local args = {
+                [1] = "CraftPotion";
+                [2] = potion;
+                [3] = i;
+                [4] = true;
+            }
+
+            game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9):WaitForChild("Framework", 9e9):WaitForChild("Network", 9e9):WaitForChild("Remote", 9e9):WaitForChild("Event", 9e9):FireServer(unpack(args))
+        end
+    end
+
+    taskStates["Auto Craft Potions"] = false
+    local ref = buttonMap["Auto Craft Potions"]
+    if ref then
+        ref.checkmark.Visible = false
+    end
 end)
