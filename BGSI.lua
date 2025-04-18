@@ -154,6 +154,20 @@ createCheckbox("Blow Bubble", false, function()
     end)
 end)
 
+createCheckbox("Auto Sell", false, function()
+    task.spawn(function()
+        while taskStates["Auto Sell"] do
+            local args = {
+                [1] = "SellBubble";
+            }
+
+            game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9):WaitForChild("Framework", 9e9):WaitForChild("Network", 9e9):WaitForChild("Remote", 9e9):WaitForChild("Event", 9e9):FireServer(unpack(args))
+
+            task.wait(0.1)
+        end
+    end)
+end)
+
 createCheckbox("Open Island Chest", false, function()
     task.spawn(function()
         while taskStates["Open Island Chest"] do
@@ -232,20 +246,6 @@ createCheckbox("Auto Craft Potions", false, function()
     if ref then
         ref.checkmark.Visible = false
     end
-end)
-
-createCheckbox("Auto Sell", false, function()
-    task.spawn(function()
-        while taskStates["Auto Sell"] do
-            local args = {
-                [1] = "SellBubble";
-            }
-
-            game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9):WaitForChild("Framework", 9e9):WaitForChild("Network", 9e9):WaitForChild("Remote", 9e9):WaitForChild("Event", 9e9):FireServer(unpack(args))
-
-            task.wait(0.1)
-        end
-    end)
 end)
 
 createCheckbox("Buy Alien Shop", false, function()
