@@ -1,4 +1,3 @@
--- UI Setup
 local player = game.Players.LocalPlayer
 local screenGui = Instance.new("ScreenGui")
 screenGui.Name = "TaskToggleUI"
@@ -6,7 +5,7 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = player:WaitForChild("PlayerGui")
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 250, 0, 150)
+frame.Size = UDim2.new(0, 300, 0, 350)
 frame.Position = UDim2.new(0.05, 0, 0.3, 0)
 frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 frame.BorderSizePixel = 0
@@ -14,18 +13,43 @@ frame.Parent = screenGui
 frame.Active = true
 frame.Draggable = true
 
+-- Title Bar
+local titleBar = Instance.new("TextLabel")
+titleBar.Size = UDim2.new(1, 0, 0, 30)
+titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+titleBar.TextColor3 = Color3.new(1, 1, 1)
+titleBar.Text = "Task Toggle UI"
+titleBar.Font = Enum.Font.SourceSansBold
+titleBar.TextSize = 18
+titleBar.TextXAlignment = Enum.TextXAlignment.Center
+titleBar.Parent = frame
 
+-- Scrollable container
+local scrollingFrame = Instance.new("ScrollingFrame")
+scrollingFrame.Size = UDim2.new(1, -10, 1, -40)
+scrollingFrame.Position = UDim2.new(0, 5, 0, 35)
+scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+scrollingFrame.BackgroundTransparency = 1
+scrollingFrame.BorderSizePixel = 0
+scrollingFrame.ScrollBarThickness = 6
+scrollingFrame.Parent = frame
 
+-- Layout inside scroll
 local layout = Instance.new("UIListLayout")
-layout.Padding = UDim.new(0, 10)
+layout.Padding = UDim.new(0, 8)
 layout.FillDirection = Enum.FillDirection.Vertical
 layout.SortOrder = Enum.SortOrder.LayoutOrder
-layout.Parent = frame
+layout.Parent = scrollingFrame
 
+-- Dynamically adjust canvas height
+layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
+end)
 
+-- Close button
 local closeButton = Instance.new("TextButton")
 closeButton.Size = UDim2.new(0, 30, 0, 30)
-closeButton.Position = UDim2.new(1, -35, 0, 5)
+closeButton.Position = UDim2.new(1, -35, 0, 0)
 closeButton.BackgroundColor3 = Color3.fromRGB(120, 50, 50)
 closeButton.TextColor3 = Color3.new(1, 1, 1)
 closeButton.Text = "X"
@@ -36,20 +60,29 @@ closeButton.Parent = frame
 closeButton.ZIndex = 2
 closeButton.AutoButtonColor = true
 
-closeButton.MouseButton1Click:Connect(function()
-    screenGui:Destroy()
-end)
 
 -- State and refs
 local taskStates = {}
 local buttonMap = {}
 
+
+-- Terminate all tasks on close
+closeButton.MouseButton1Click:Connect(function()
+    for name, _ in pairs(taskStates) do
+        taskStates[name] = false
+    end
+    screenGui:Destroy()
+end)
+
+
+
 -- Checkbox creation
-local function createCheckbox(name, defaultState, loopFunc)
+local function createCheckbox(name, defaultState, loopFunc, displayName)
+    displayName = displayName or name
     local container = Instance.new("Frame")
     container.Size = UDim2.new(1, -20, 0, 30)
     container.BackgroundTransparency = 1
-    container.Parent = frame
+    container.Parent = scrollingFrame
 
     local checkbox = Instance.new("TextButton")
     checkbox.Size = UDim2.new(0, 24, 0, 24)
@@ -73,7 +106,7 @@ local function createCheckbox(name, defaultState, loopFunc)
     label.Size = UDim2.new(1, -30, 1, 0)
     label.Position = UDim2.new(0, 30, 0, 0)
     label.BackgroundTransparency = 1
-    label.Text = name
+    label.Text = displayName
     label.TextColor3 = Color3.new(1, 1, 1)
     label.Font = Enum.Font.SourceSans
     label.TextSize = 18
@@ -149,6 +182,8 @@ createCheckbox("Claim Chests", false, function()
 
             remote:FireServer("ClaimChest", "Giant Chest", true)
 
+            remote:FireServer("ClaimRiftGift", "gift-rift")
+
             task.wait(10)
         end
     end)
@@ -198,3 +233,89 @@ createCheckbox("Auto Craft Potions", false, function()
         ref.checkmark.Visible = false
     end
 end)
+
+createCheckbox("Auto Sell", false, function()
+    task.spawn(function()
+        while taskStates["Auto Sell"] do
+            local args = {
+                [1] = "SellBubble";
+            }
+
+            game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9):WaitForChild("Framework", 9e9):WaitForChild("Network", 9e9):WaitForChild("Remote", 9e9):WaitForChild("Event", 9e9):FireServer(unpack(args))
+
+            task.wait(0.1)
+        end
+    end)
+end)
+
+createCheckbox("Buy Alien Shop", false, function()
+    task.spawn(function()
+        while taskStates["Buy Alien Shop"] do
+            for i = 1, 3 do
+                local args = {
+                    [1] = "BuyShopItem";
+                    [2] = "alien-shop";
+                    [3] = i;
+                }
+
+                game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9):WaitForChild("Framework", 9e9):WaitForChild("Network", 9e9):WaitForChild("Remote", 9e9):WaitForChild("Event", 9e9):FireServer(unpack(args))
+            end
+
+            task.wait(0.1)
+        end
+    end)
+end)
+
+createCheckbox("Claim Playtime Rewards", false, function()
+    task.spawn(function()
+        while taskStates["Claim Playtime Rewards"] do
+            for i=1, 9 do 
+                local args = {
+                    [1] = "ClaimPlaytime";
+                    [2] = i;
+                }
+                
+                game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9):WaitForChild("Framework", 9e9):WaitForChild("Network", 9e9):WaitForChild("Remote", 9e9):WaitForChild("Function", 9e9):InvokeServer(unpack(args))
+            end
+
+        task.wait(10)
+        end
+    end)
+end)
+
+createCheckbox("Claim Spinwheels", false, function()
+    task.spawn(function()
+        while taskStates["Claim Spinwheels"] do
+            local args = {
+                [1] = "ClaimFreeWheelSpin";
+            }
+            
+            game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9):WaitForChild("Framework", 9e9):WaitForChild("Network", 9e9):WaitForChild("Remote", 9e9):WaitForChild("Event", 9e9):FireServer(unpack(args))
+
+            task.wait(10)
+        end
+    end)
+end)
+
+createCheckbox("Use Tickets", false, function()
+    task.spawn(function()
+        while taskStates["Use Tickets"] do
+
+            local args = {
+                [1] = "WheelSpin";
+            }
+
+            game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9):WaitForChild("Framework", 9e9):WaitForChild("Network", 9e9):WaitForChild("Remote", 9e9):WaitForChild("Function", 9e9):InvokeServer(unpack(args))
+
+            local args = {
+                [1] = "ClaimWheelSpinQueue";
+            }
+
+            game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9):WaitForChild("Framework", 9e9):WaitForChild("Network", 9e9):WaitForChild("Remote", 9e9):WaitForChild("Event", 9e9):FireServer(unpack(args))
+            
+            task.wait(0.1)
+        end
+    end)
+    end,
+    "Use Tickets <Only Enable if in zone and disable afterwards otherwise bugs out>"
+)
