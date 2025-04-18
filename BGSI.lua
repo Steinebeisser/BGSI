@@ -144,6 +144,21 @@ local remote = game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9)
     :WaitForChild("Remote", 9e9)
     :WaitForChild("Event", 9e9)
 
+function getGemAmount()
+    local Players = game:GetService("Players")
+    local player = Players:GetPlayers()[1]
+    local username = player.Name
+    
+    local gemValue = player:WaitForChild("PlayerGui")
+    :WaitForChild("ScreenGui"):WaitForChild("HUD"):WaitForChild("Left"):WaitForChild("Currency"):WaitForChild("Gems"):WaitForChild("Frame"):WaitForChild("Label").Text
+    
+    print("Username: ", username)
+    print(gemValue)
+    
+    local gemAmount = tonumber(gemValue:gsub(",", ""))
+    return gemAmount
+end
+
 createCheckbox("Blow Bubble", false, function()
     task.spawn(function()
         while taskStates["Blow Bubble"] do
@@ -158,10 +173,10 @@ createCheckbox("Auto Sell", false, function()
     task.spawn(function()
         while taskStates["Auto Sell"] do
             local args = {
-                [1] = "SellBubble";
+                [1] = "SellBubble"
             }
-
-            game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9):WaitForChild("Framework", 9e9):WaitForChild("Network", 9e9):WaitForChild("Remote", 9e9):WaitForChild("Event", 9e9):FireServer(unpack(args))
+            
+            game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Framework"):WaitForChild("Network"):WaitForChild("Remote"):WaitForChild("Event"):FireServer(unpack(args))
 
             task.wait(0.1)
         end
@@ -319,3 +334,85 @@ createCheckbox("Use Tickets", false, function()
     end,
     "Use Tickets <Only Enable if in zone and disable afterwards otherwise bugs out>"
 )
+
+createCheckbox("Auto Collect Coints", false, function()
+    task.spawn(function()
+        while taskStates["Auto Collect Coints"] do
+            local renderedStorage = Workspace:WaitForChild("Rendered")
+
+            for _, folder in pairs(renderedStorage:getChildren()) do
+                if folder.Name == "Chunker" then
+                    for _, chunker in pairs(folder:getChildren()) do
+                        if (chunker:IsA("Model")) and chunker.Name:match("%x%-") then
+                            local args = {
+                                [1] = chunker.Name
+                            }
+                        
+                            game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("Pickups"):WaitForChild("CollectPickup"):FireServer(unpack(args))
+                            chunker:Destroy()
+                        end
+                    end
+                end
+            end
+
+            task.wait(0.1)
+        end
+    end)
+end)
+
+local genieOldPos
+local isOpenGenie = false
+createCheckbox("Open Genie Menu", false, function()
+    taskStates["Open Genie Menu"] = false
+    local genieRoot = workspace:WaitForChild("Worlds"):WaitForChild("The Overworld"):WaitForChild("Islands"):WaitForChild("Zen"):WaitForChild("Island"):WaitForChild("GemGenie"):WaitForChild("Root")
+
+    if isOpenGenie then
+        genieRoot.CFrame = genieOldPos
+        isOpenGenie = false
+        local ref = buttonMap["Open Genie Menu"]
+        if ref then
+            ref.checkmark.Visible = false
+        end
+        return;
+        return
+    end
+
+    local player =game.Players.localPlayer
+    local name = player.Name
+
+    local cframePos = workspace:WaitForChild(name):WaitForChild("HumanoidRootPart").CFrame
+
+    genieOldPos = genieRoot.CFrame
+
+    genieRoot.CFrame = cframePos
+    isOpenGenie = true
+end)
+
+local blackmarkedOldPos
+local isOpenBlack = false
+createCheckbox("Open Blackmarked", false, function()
+    taskStates["Open Blackmarked"] = false
+    local blackmarkedRoot = workspace:WaitForChild("Worlds"):WaitForChild("The Overworld"):WaitForChild("Islands"):WaitForChild("The Void"):WaitForChild("Island"):WaitForChild("Vendor"):WaitForChild("Activation"):WaitForChild("Root")
+
+    if isOpenBlack then
+        blackmarkedRoot.CFrame = blackmarkedOldPos
+        isOpenBlack = false
+        local ref = buttonMap["Open Blackmarked"]
+        if ref then
+            ref.checkmark.Visible = false
+        end
+        return;
+    end 
+
+    local player =game.Players.localPlayer
+    local name = player.Name
+
+    local cframePos = workspace:WaitForChild(name):WaitForChild("HumanoidRootPart").CFrame
+
+    blackmarkedOldPos = blackmarkedRoot.CFrame
+
+    blackmarkedRoot.CFrame = cframePos
+    isOpenBlack = true
+end)
+
+    
