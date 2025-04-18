@@ -373,7 +373,6 @@ createCheckbox("Open Genie Menu", false, function()
         if ref then
             ref.checkmark.Visible = false
         end
-        return;
         return
     end
 
@@ -401,7 +400,7 @@ createCheckbox("Open Blackmarked", false, function()
         if ref then
             ref.checkmark.Visible = false
         end
-        return;
+        return
     end 
 
     local player =game.Players.localPlayer
