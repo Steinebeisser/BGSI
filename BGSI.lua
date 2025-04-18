@@ -60,6 +60,36 @@ closeButton.Parent = frame
 closeButton.ZIndex = 2
 closeButton.AutoButtonColor = true
 
+-- Minimize/Maximize toggle
+local isMinimized = false
+
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 30, 0, 30)
+toggleButton.Position = UDim2.new(1, -70, 0, 0)
+toggleButton.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
+toggleButton.TextColor3 = Color3.new(1, 1, 1)
+toggleButton.Text = "-"
+toggleButton.Font = Enum.Font.SourceSansBold
+toggleButton.TextSize = 20
+toggleButton.BorderSizePixel = 0
+toggleButton.Parent = frame
+toggleButton.ZIndex = 2
+toggleButton.AutoButtonColor = true
+
+toggleButton.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        scrollingFrame.Visible = false
+        toggleButton.Text = "+"
+        frame.Size = UDim2.new(0, 300, 0, 30)
+    else
+        scrollingFrame.Visible = true
+        toggleButton.Text = "-"
+        frame.Size = UDim2.new(0, 300, 0, 350)
+    end
+end)
+
+
 
 -- State and refs
 local taskStates = {}
@@ -413,5 +443,3 @@ createCheckbox("Open Blackmarked", false, function()
     blackmarkedRoot.CFrame = cframePos
     isOpenBlack = true
 end)
-
-    
