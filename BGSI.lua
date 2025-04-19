@@ -1,5 +1,6 @@
 local player = game.Players.LocalPlayer
 local screenGui = Instance.new("ScreenGui")
+local isScriptEnabled = true
 screenGui.Name = "TaskToggleUI"
 screenGui.ResetOnSpawn = false
 screenGui.Parent = player:WaitForChild("PlayerGui")
@@ -13,7 +14,6 @@ frame.Parent = screenGui
 frame.Active = true
 frame.Draggable = true
 
--- Title Bar
 local titleBar = Instance.new("TextLabel")
 titleBar.Size = UDim2.new(1, 0, 0, 30)
 titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -24,7 +24,6 @@ titleBar.TextSize = 18
 titleBar.TextXAlignment = Enum.TextXAlignment.Center
 titleBar.Parent = frame
 
--- Scrollable container
 local scrollingFrame = Instance.new("ScrollingFrame")
 scrollingFrame.Size = UDim2.new(1, -10, 1, -40)
 scrollingFrame.Position = UDim2.new(0, 5, 0, 35)
@@ -34,19 +33,16 @@ scrollingFrame.BorderSizePixel = 0
 scrollingFrame.ScrollBarThickness = 6
 scrollingFrame.Parent = frame
 
--- Layout inside scroll
 local layout = Instance.new("UIListLayout")
 layout.Padding = UDim.new(0, 8)
 layout.FillDirection = Enum.FillDirection.Vertical
 layout.SortOrder = Enum.SortOrder.LayoutOrder
 layout.Parent = scrollingFrame
 
--- Dynamically adjust canvas height
 layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
     scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
 end)
 
--- Close button
 local closeButton = Instance.new("TextButton")
 closeButton.Size = UDim2.new(0, 30, 0, 30)
 closeButton.Position = UDim2.new(1, -35, 0, 0)
@@ -60,7 +56,6 @@ closeButton.Parent = frame
 closeButton.ZIndex = 2
 closeButton.AutoButtonColor = true
 
--- Minimize/Maximize toggle
 local isMinimized = false
 
 local toggleButton = Instance.new("TextButton")
@@ -91,23 +86,20 @@ end)
 
 
 
--- State and refs
 local taskStates = {}
 local buttonMap = {}
 
 
--- Terminate all tasks on close
 closeButton.MouseButton1Click:Connect(function()
     print("Exiting...")
     for name, _ in pairs(taskStates) do
         taskStates[name] = false
     end
     screenGui:Destroy()
+    isScriptEnabled = false
 end)
 
 
-
--- Checkbox creation
 local function createCheckbox(name, defaultState, loopFunc, displayName)
     displayName = displayName or name
     local container = Instance.new("Frame")
@@ -128,7 +120,7 @@ local function createCheckbox(name, defaultState, loopFunc, displayName)
     checkmark.Size = UDim2.new(1, 0, 1, 0)
     checkmark.Position = UDim2.new(0, 0, 0, 0)
     checkmark.BackgroundTransparency = 1
-    checkmark.Image = "rbxassetid://6031094678" -- checkmark icon
+    checkmark.Image = "rbxassetid://6031094678" 
     checkmark.ImageColor3 = Color3.new(1, 1, 1)
     checkmark.Visible = defaultState
     checkmark.Parent = checkbox
@@ -180,7 +172,6 @@ local function removeCheckbox(name)
     end
 end
 
--- Remote path
 local remote = game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9)
     :WaitForChild("Framework", 9e9)
     :WaitForChild("Network", 9e9)
@@ -432,6 +423,143 @@ createCheckbox("Auto Doggy Jump", true, function()
         end
     end)
 end)
+
+local httprequest = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
+local HttpService = game:GetService("HttpService")
+
+local avatarCache = {}
+
+function sendWebHook(webhook, message, embed)
+    if not httprequest or not webhook then return end
+    local player = game:GetService("Players").LocalPlayer
+
+    local userId = player.UserId
+    local username = player.Name .. " | " .. tostring(userId)
+    
+    local avatarUrl = avatarCache[userId]
+    if not avatarUrl then
+        local success, result = pcall(function()
+            local response = httprequest({
+                Url = "https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=" .. userId .. "&size=420x420&format=Png&isCircular=false",
+                Method = "GET"
+            })
+            local data = HttpService:JSONDecode(response.Body).data
+            if data and data[1] and data[1].state == "Completed" then
+                avatarUrl = data[1].imageUrl
+                avatarCache[userId] = avatarUrl
+            end
+        end)
+        if not success then
+            avatarUrl = "https://tr.rbxcdn.com/6c881fc4fc79802c012cb82a689e84e0/420/420/AvatarHeadshot/Png"
+        end
+    end
+
+    local data = {
+        username = username,
+        avatar_url = avatarUrl,
+        embeds = { embed },
+        allowed_mentions = { parse = {} }
+    }
+
+    httprequest({
+        Url = webhook,
+        Method = "POST",
+        Headers = {
+            ["Content-Type"] = "application/json"
+        },
+        Body = HttpService:JSONEncode(data)
+    })
+end
+
+function createPetHatchEmbed(petName, message, imageUrl)
+    local embed = {
+        title = petName,
+        description = message,
+        color = 0x00ffcc,
+        thumbnail = imageUrl and { url = imageUrl } or nil,
+        footer = {
+            text = "Praise to Steinebeisser"
+        },
+        timestamp = os.date("!%Y-%m-%dT%H:%M:%SZ")
+        }
+    return embed
+end
+
+function getAssetUrl(assetId)
+    local url = "https://thumbnails.roblox.com/v1/assets?assetIds=" .. assetId .. "&size=420x420&format=Png&isCircular=false"
+    local response = httprequest({
+        Url = url,
+        Method = "GET"
+    })
+
+    print("RESPONSE:", response.Body)
+
+    local data = HttpService:JSONDecode(response.Body)
+    
+    if data and data.data and data.data[1] and data.data[1].imageUrl then
+        return data.data[1].imageUrl
+    end
+
+    return nil
+end
+
+createCheckbox("Hatch Webhook", false, function()
+    task.spawn(function()
+        local player = game:GetService("Players").LocalPlayer
+        local lastHatching = player:WaitForChild("PlayerGui"):WaitForChild("ScreenGui"):WaitForChild("Hatching"):WaitForChild("Last")
+        local newHatch = true;
+        
+        local function trackSlot(slot)
+            local function markAsNew()
+                newHatch = true
+            end
+        
+            slot:GetPropertyChangedSignal("Name"):Connect(markAsNew)
+        
+            local chance = slot:FindFirstChild("Chance")
+            if chance and chance:IsA("TextLabel") then
+                chance:GetPropertyChangedSignal("ContentText"):Connect(markAsNew)
+            end
+        end
+
+        for _, child in ipairs(lastHatching:GetChildren()) do
+            if child:IsA("GuiObject") then
+                trackSlot(child)
+            end
+        end+
+        
+        lastHatching.ChildAdded:Connect(function(child)
+            if child:IsA("GuiObject") then
+                trackSlot(child)
+                newHatch = true
+            end
+        end)
+        
+        local rarityThreshold = 0.001
+        local webhook = "https://discord.com/api/webhooks/1362564811380228306/WrVSHzYpAvk0ufBaaMak0SLRuhuojXehNBuGJMRYAQFav6ksx6CJQwU6urHI2zbTuxRn"
+
+        while taskStates["Hatch Webhook"] do
+            if newHatch then
+                for _, hatch in pairs(lastHatching:GetChildren()) do
+                    if hatch:IsA("GuiObject") and hatch.Name ~= "Title" then
+                        local hatchRarity = hatch:FindFirstChild("Chance").ContentText
+                        local raw = hatchRarity:gsub("%%", "")
+                        local numberRarity = tonumber(raw)
+                        if numberRarity <= rarityThreshold then
+                            print("Number Rarity:", numberRarity)
+                            print("Rare Pet Dropped: " .. hatch.Name .. " (" .. hatchRarity .. ")")
+                            local assetID = hatch:FindFirstChild("Icon"):FindFirstChild("Label").Image:split("rbxassetid://")[2]
+                        
+                            sendWebHook(webhook, nil, createPetHatchEmbed(hatch.Name, hatchRarity, getAssetUrl(assetID)))
+                        end
+                    end
+                end
+                newHatch = false
+            end
+            task.wait(0.1)
+        end
+    end)
+end) 
 
 createCheckbox("Use Tickets", false, function()
     task.spawn(function()
@@ -796,55 +924,57 @@ function riftTimer(rift)
     end)
 end
 
-for _, rift in pairs(riftsFolder:GetChildren()) do
-    if rift:IsA("Model") then
-        local height = rift:GetPivot().Position.Y
+if (isScriptEnabled) then
+    for _, rift in pairs(riftsFolder:GetChildren()) do
+        if rift:IsA("Model") then
+            local height = rift:GetPivot().Position.Y
 
-        local multiplier = getLuckMultiplier(rift)
-        local displayName = "Rift: " .. rift.Name
-        if multiplier then
-            displayName = displayName .. " " .. multiplier
-        end
-        createCheckbox("Rift: " .. height, false, function()
-            moveToRift(rift)
-        end, displayName)
-        riftTimer(rift)
-        if multiplier then
-            print("Rift:", rift.Name, "Luck Multiplier:", multiplier, "Height", height)
-        else
-            print("Rift:", rift.Name, "has no luck multiplier.", "Height", height)
+            local multiplier = getLuckMultiplier(rift)
+            local displayName = "Rift: " .. rift.Name
+            if multiplier then
+                displayName = displayName .. " " .. multiplier
+            end
+            createCheckbox("Rift: " .. height, false, function()
+                moveToRift(rift)
+            end, displayName)
+            riftTimer(rift)
+            if multiplier then
+                print("Rift:", rift.Name, "Luck Multiplier:", multiplier, "Height", height)
+            else
+                print("Rift:", rift.Name, "has no luck multiplier.", "Height", height)
+            end
         end
     end
+
+    riftsFolder.ChildAdded:Connect(function(child)
+        if child:IsA("Model") then
+
+            local rift = child
+            local height = rift:GetPivot().Position.Y
+
+            local multiplier = getLuckMultiplier(rift)
+            local displayName = "Rift: " .. rift.Name
+            if multiplier then
+                displayName = displayName .. " " .. multiplier
+            end
+            createCheckbox("Rift: " .. height, false, function()
+                moveToRift(rift)
+            end, displayName) 
+            riftTimer(rift)
+            if multiplier then
+                print("NEW: Rift:", rift.Name, "Luck Multiplier:", multiplier)
+            else
+                print("NEW: Rift:", rift.Name, "has no luck multiplier.")
+            end
+        end
+    end)
+
+    riftsFolder.ChildRemoved:Connect(function(child)
+        if child:IsA("Model") then
+            local rift = child
+            local height = rift:GetPivot().Position.Y
+            removeCheckbox("Rift: " .. height)
+            print("Rift removed: " .. rift.Name)
+        end
+    end)
 end
-
-riftsFolder.ChildAdded:Connect(function(child)
-    if child:IsA("Model") then
-
-        local rift = child
-        local height = rift:GetPivot().Position.Y
-
-        local multiplier = getLuckMultiplier(rift)
-        local displayName = "Rift: " .. rift.Name
-        if multiplier then
-            displayName = displayName .. " " .. multiplier
-        end
-        createCheckbox("Rift: " .. height, false, function()
-            moveToRift(rift)
-        end, displayName) 
-        riftTimer(rift)
-        if multiplier then
-            print("NEW: Rift:", rift.Name, "Luck Multiplier:", multiplier)
-        else
-            print("NEW: Rift:", rift.Name, "has no luck multiplier.")
-        end
-    end
-end)
-
-riftsFolder.ChildRemoved:Connect(function(child)
-    if child:IsA("Model") then
-        local rift = child
-        local height = rift:GetPivot().Position.Y
-        removeCheckbox("Rift: " .. height)
-        print("Rift removed: " .. rift.Name)
-    end
-end)
