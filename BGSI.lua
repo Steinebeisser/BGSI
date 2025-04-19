@@ -417,6 +417,22 @@ createCheckbox("Claim Spinwheels", true, function()
     end)
 end)
 
+createCheckbox("Auto Doggy Jump", true, function()
+    task.spawn(function()
+        while taskStates["Auto Doggy Jump"] do
+            for i = 1, 3 do
+                local args = {
+                    [1] = "DoggyJumpWin",
+                    [2] = i
+                }
+            
+                game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Framework"):WaitForChild("Network"):WaitForChild("Remote"):WaitForChild("Event"):FireServer(unpack(args))
+            end
+            task.wait(10)
+        end
+    end)
+end)
+
 createCheckbox("Use Tickets", false, function()
     task.spawn(function()
         while taskStates["Use Tickets"] do
