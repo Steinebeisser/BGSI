@@ -471,10 +471,37 @@ function sendWebHook(webhook, message, embed)
     })
 end
 
-function createPetHatchEmbed(petName, message, imageUrl)
+function createPetHatchEmbed(petName, hatchRarity, imageUrl, bubbleCount, eggCount)
+    local descriptionText = ""
+    local raw = hatchRarity:gsub("%%", "")
+    local numberRarity = tonumber(raw)
+    local oddsText = ""
+    if numberRarity and numberRarity > 0 then
+        local odds = math.floor(100 / numberRarity + 0.5)
+        oddsText = string.format("(~1 in %s)", string.format("%0.f", odds):reverse():gsub("(%d%d%d)", "%1,"):reverse():gsub("^,", ""))
+    end
+    local hatchRarityText =  hatchRarity .. "`" .. oddsText .. "`" .."\n"
+
+    local bubbleText = ""
+    if bubbleCount then
+        bubbleText = string.format("`%s` bubbles", bubbleCount) .. "\n"
+    end
+
+    local eggText = ""
+    if eggCount then
+        eggText = string.format("`%s` eggs", eggCount) .. "\n"
+    end
+
+    print("Egg Count:", eggCount)
+    print("Bubble Count:", bubbleCount)
+    print("Bubble Text:", bubbleText)
+    print("Egg Text:", eggText)
+    print("Hatch Rarity Text:", hatchRarityText)
+
+    descriptionText = descriptionText .. hatchRarityText .. bubbleText .. eggText
     local embed = {
         title = petName,
-        description = message,
+        description = descriptionText,
         color = 0x00ffcc,
         thumbnail = imageUrl and { url = imageUrl } or nil,
         footer = {
@@ -501,6 +528,28 @@ function getAssetUrl(assetId)
     end
 
     return nil
+end
+
+local function logChildren(parent, indent)
+    indent = indent or ""  
+    for _, child in pairs(parent:GetChildren()) do
+        print(indent .. child.Name .. " (Type: " .. child.ClassName .. ")")
+        if #child:GetChildren() > 0 then
+            logChildren(child, indent .. "  ")  
+        end
+    end
+end
+
+function getEggCount()
+    local player = game:GetService("Players").LocalPlayer
+    local eggCount = player:WaitForChild("leaderstats"):WaitForChild("🥚 Hatches").Value
+    return tonumber(eggCount)
+end
+
+function getBubbleCount()
+    local player = game:GetService("Players").LocalPlayer
+    local bubbleCount = player:WaitForChild("leaderstats"):WaitForChild("🟣 Bubbles").Value
+    return tonumber(bubbleCount)
 end
 
 createCheckbox("Hatch Webhook", false, function()
@@ -549,8 +598,11 @@ createCheckbox("Hatch Webhook", false, function()
                             print("Number Rarity:", numberRarity)
                             print("Rare Pet Dropped: " .. hatch.Name .. " (" .. hatchRarity .. ")")
                             local assetID = hatch:FindFirstChild("Icon"):FindFirstChild("Label").Image:split("rbxassetid://")[2]
+
+                            local eggCount = getEggCount()
+                            local bubbleCount = getBubbleCount()
                         
-                            sendWebHook(webhook, nil, createPetHatchEmbed(hatch.Name, hatchRarity, getAssetUrl(assetID)))
+                            sendWebHook(webhook, nil, createPetHatchEmbed(hatch.Name, hatchRarity, getAssetUrl(assetID), bubbleCount, eggCount))
                         end
                     end
                 end
