@@ -492,13 +492,15 @@ function createPetHatchEmbed(petName, hatchRarity, imageUrl, bubbleCount, eggCou
         eggText = string.format("`%s` eggs", eggCount) .. "\n"
     end
 
+    local herbPing = "<@1156652504185053294>"
+
     print("Egg Count:", eggCount)
     print("Bubble Count:", bubbleCount)
     print("Bubble Text:", bubbleText)
     print("Egg Text:", eggText)
     print("Hatch Rarity Text:", hatchRarityText)
 
-    descriptionText = descriptionText .. hatchRarityText .. bubbleText .. eggText
+    descriptionText = descriptionText .. hatchRarityText .. bubbleText .. eggText .. herbPing
     local embed = {
         title = petName,
         description = descriptionText,
