@@ -210,7 +210,7 @@ function openGifts(amount)
 
         game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Framework"):WaitForChild("Network"):WaitForChild("Remote"):WaitForChild("Event"):FireServer(unpack(args))
 
-        gift:Destroy()
+        -- gift:Destroy()
     end
 end
 
@@ -256,6 +256,20 @@ createCheckbox("Open Island Chest", false, function()
             local args = {
                 [1] = "UnlockRiftChest",
                 [2] = "golden-chest",
+                [3] = false
+            }
+            remote:FireServer(unpack(args))
+            task.wait(0.1)
+        end
+    end)
+end)
+
+createCheckbox("Open Royal Chest", false, function()
+    task.spawn(function()
+        while taskStates["Open Royal Chest"] do
+            local args = {
+                [1] = "UnlockRiftChest",
+                [2] = "royal-chest",
                 [3] = false
             }
             remote:FireServer(unpack(args))
