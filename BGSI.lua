@@ -526,7 +526,7 @@ createCheckbox("Hatch Webhook", false, function()
             if child:IsA("GuiObject") then
                 trackSlot(child)
             end
-        end+
+        end
         
         lastHatching.ChildAdded:Connect(function(child)
             if child:IsA("GuiObject") then
