@@ -606,10 +606,8 @@ local function getNearestIsland(position)
         local islandPosition = islandPivot.Position
         local distance = (position - islandPosition).Magnitude
 
-        if position.Y > islandPosition.Y then
-            if not nearestIsland or distance < (position - nearestIsland:WaitForChild("Island"):GetPivot().Position).Magnitude then
-                nearestIsland = island
-            end
+        if not nearestIsland or distance < (position - nearestIsland:WaitForChild("Island"):GetPivot().Position).Magnitude then
+            nearestIsland = island
         end
 
         print("Island:", island.Name, "Distance:", distance, "Valid:", position.Y > islandPosition.Y)
