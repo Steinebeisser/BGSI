@@ -145,6 +145,10 @@ local function createCheckbox(name, defaultState, loopFunc, displayName)
 
     taskStates[name] = defaultState
 
+    if defaultState then
+        task.spawn(loopFunc)
+    end
+
     checkbox.MouseButton1Click:Connect(function()
         taskStates[name] = not taskStates[name]
         checkmark.Visible = taskStates[name]
@@ -189,7 +193,7 @@ function getGemAmount()
     return gemAmount
 end
 
-createCheckbox("Blow Bubble", false, function()
+createCheckbox("Blow Bubble", true, function()
     task.spawn(function()
         while taskStates["Blow Bubble"] do
             local args = { [1] = "BlowBubble" }
@@ -199,19 +203,31 @@ createCheckbox("Blow Bubble", false, function()
     end)
 end)
 
+local originalSellPos
 createCheckbox("Auto Sell", false, function()
     task.spawn(function()
         while taskStates["Auto Sell"] do
             local args = {
                 [1] = "SellBubble"
             }
-            
+            local autoSellRoot = workspace:WaitForChild("Worlds"):WaitForChild("The Overworld"):WaitForChild("Islands"):WaitForChild("Twilight"):WaitForChild("Island"):WaitForChild("Sell"):WaitForChild("Root")
+            if not originalSellPos then
+                originalSellPos = autoSellRoot.CFrame
+            end
+
+
+            local player =game.Players.localPlayer
+            local name = player.Name
+
+            workspace:WaitForChild(name):WaitForChild("HumanoidRootPart").CFrame = autoSellRoot.CFrame
+
             game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Framework"):WaitForChild("Network"):WaitForChild("Remote"):WaitForChild("Event"):FireServer(unpack(args))
 
             task.wait(0.1)
         end
     end)
-end)
+end,
+"Auto Sell - Broken")
 
 createCheckbox("Open Island Chest", false, function()
     task.spawn(function()
@@ -226,7 +242,7 @@ createCheckbox("Open Island Chest", false, function()
     end)
 end)
 
-createCheckbox("Claim Chests", false, function()
+createCheckbox("Claim Chests", true, function()
     task.spawn(function()
         while taskStates["Claim Chests"] do
             local remote = game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9)
@@ -250,25 +266,21 @@ end)
 
 afk_counter = 0
 
-createCheckbox("Anti AFK", false, function()
+createCheckbox("Anti AFK", true, function()
     task.spawn(function()
-        while taskStates["Anti AFK"] do
-            local character = game.Players.LocalPlayer.Character
-            if character and character:FindFirstChild("Humanoid") then
-                if afk_counter % 2 == 0 then 
-                    character:SetPrimaryPartCFrame(character.PrimaryPart.CFrame * CFrame.new(0, 0, 0.1))
-                else
-                    character:SetPrimaryPartCFrame(character.PrimaryPart.CFrame * CFrame.new(0, 0, -0.1))
-                end
+        local vu = game:GetService("VirtualUser")
+        game:GetService("Players").LocalPlayer.Idled:Connect(function()
+            if taskStates["Anti AFK"] then
+                vu:Button2Down(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+                task.wait(1)
+                vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
+                print("Anti-AFK triggered VirtualUser input.")
+                task.wait(600)
             end
-
-            print("Simulating movement to prevent AFK kick.")
-
-            afk_counter = afk_counter + 1  
-            task.wait(600)  
-        end
+        end)
     end)
 end)
+
 
 createCheckbox("Auto Craft Potions", false, function() 
     potionTypes = {"Lucky", "Speed", "Mythic", "Coins"}
@@ -293,7 +305,7 @@ createCheckbox("Auto Craft Potions", false, function()
     end
 end)
 
-createCheckbox("Buy Alien Shop", false, function()
+createCheckbox("Buy Alien Shop", true, function()
     task.spawn(function()
         while taskStates["Buy Alien Shop"] do
             for i = 1, 3 do
@@ -311,7 +323,7 @@ createCheckbox("Buy Alien Shop", false, function()
     end)
 end)
 
-createCheckbox("Claim Playtime Rewards", false, function()
+createCheckbox("Claim Playtime Rewards", true, function()
     task.spawn(function()
         while taskStates["Claim Playtime Rewards"] do
             for i=1, 9 do 
@@ -328,7 +340,7 @@ createCheckbox("Claim Playtime Rewards", false, function()
     end)
 end)
 
-createCheckbox("Claim Spinwheels", false, function()
+createCheckbox("Claim Spinwheels", true, function()
     task.spawn(function()
         while taskStates["Claim Spinwheels"] do
             local args = {
