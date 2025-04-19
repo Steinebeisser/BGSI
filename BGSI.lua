@@ -193,6 +193,27 @@ function getGemAmount()
     return gemAmount
 end
 
+function openGifts(amount)
+    local args = {
+        [1] = "UseGift",
+        [2] = "Mystery Box",
+        [3] = amount
+    }
+
+    game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Framework"):WaitForChild("Network"):WaitForChild("Remote"):WaitForChild("Event"):FireServer(unpack(args))
+
+    for _, gift in pairs(game:GetService("Workspace"):WaitForChild("Rendered"):WaitForChild("Gifts"):getChildren()) do
+        local args = {
+            [1] = "ClaimGift",
+            [2] = gift.Name
+        }
+
+        game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Framework"):WaitForChild("Network"):WaitForChild("Remote"):WaitForChild("Event"):FireServer(unpack(args))
+
+        gift:Destroy()
+    end
+end
+
 createCheckbox("Blow Bubble", true, function()
     task.spawn(function()
         while taskStates["Blow Bubble"] do
@@ -323,6 +344,24 @@ createCheckbox("Buy Alien Shop", true, function()
     end)
 end)
 
+createCheckbox("Buy Blackmarket Shop", true, function()
+    task.spawn(function()
+        while taskStates["Buy Blackmarket Shop"] do
+            for i = 1, 3 do
+                local args = {
+                    [1] = "BuyShopItem",
+                    [2] = "shard-shop",
+                    [3] = i
+                }
+                
+                game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Framework"):WaitForChild("Network"):WaitForChild("Remote"):WaitForChild("Event"):FireServer(unpack(args))
+            end
+
+            task.wait(0.1)
+        end
+    end)
+end)
+
 createCheckbox("Claim Playtime Rewards", true, function()
     task.spawn(function()
         while taskStates["Claim Playtime Rewards"] do
@@ -376,6 +415,16 @@ createCheckbox("Use Tickets", false, function()
     end,
     "Use Tickets <Only Enable if in zone and disable afterwards otherwise bugs out>"
 )
+
+createCheckbox("Myster Gift", false, function()
+    task.spawn(function()
+        while taskStates["Myster Gift"] do
+            openGifts(10)
+
+            task.wait(0.1)
+        end
+    end)
+end, "Mystery Gift x10")
 
 createCheckbox("Auto Collect Coints", false, function()
     task.spawn(function()
