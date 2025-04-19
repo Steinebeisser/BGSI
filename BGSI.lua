@@ -255,7 +255,8 @@ createCheckbox("Open Island Chest", false, function()
         while taskStates["Open Island Chest"] do
             local args = {
                 [1] = "UnlockRiftChest",
-                [2] = "golden-chest"
+                [2] = "golden-chest",
+                [3] = false
             }
             remote:FireServer(unpack(args))
             task.wait(0.1)
