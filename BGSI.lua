@@ -98,6 +98,7 @@ local buttonMap = {}
 
 -- Terminate all tasks on close
 closeButton.MouseButton1Click:Connect(function()
+    print("Exiting...")
     for name, _ in pairs(taskStates) do
         taskStates[name] = false
     end
@@ -169,6 +170,14 @@ local function createCheckbox(name, defaultState, loopFunc, displayName)
         label = label,
         container = container
     }
+end
+
+local function removeCheckbox(name)
+    if buttonMap[name] then
+        buttonMap[name].container:Destroy()
+        buttonMap[name] = nil
+        taskStates[name] = nil
+    end
 end
 
 -- Remote path
@@ -536,7 +545,7 @@ createCheckbox("Open Blackmarked", false, function()
         end
         return
     end 
-
+    
     local player =game.Players.localPlayer
     local name = player.Name
 
@@ -546,4 +555,282 @@ createCheckbox("Open Blackmarked", false, function()
 
     blackmarkedRoot.CFrame = cframePos
     isOpenBlack = true
+end)
+
+
+
+-- Rift UI Section
+local riftSectionLabel = Instance.new("TextLabel")
+riftSectionLabel.Size = UDim2.new(1, -10, 0, 25)
+riftSectionLabel.Text = "Rifts:"
+riftSectionLabel.TextColor3 = Color3.new(1, 1, 1)
+riftSectionLabel.Font = Enum.Font.SourceSansBold
+riftSectionLabel.TextSize = 20
+riftSectionLabel.BackgroundTransparency = 1
+riftSectionLabel.Parent = scrollingFrame
+
+
+createCheckbox("Auto Hatch Rifts", true, function()
+end)
+
+local riftsFolder = workspace.Rendered:WaitForChild("Rifts")
+
+
+local function getLuckMultiplier(rift)
+
+    
+    local display = rift:FindFirstChild("Display")
+    if not display then return nil end
+
+    local surfaceGui = display:FindFirstChild("SurfaceGui")
+    if not surfaceGui then return nil end
+
+    local icon = surfaceGui:FindFirstChild("Icon")
+    if not icon then return nil end
+
+    local luck = icon:FindFirstChild("Luck")
+    if luck and luck:IsA("TextLabel") then
+        return luck.Text
+    end
+
+    return nil
+end
+
+local function getNearestIsland(position)
+    local islandsFolder = workspace:WaitForChild("Worlds"):WaitForChild("The Overworld"):WaitForChild("Islands")
+    local nearestIsland
+
+    for _, island in pairs(islandsFolder:GetChildren()) do
+        local islandStats = island:WaitForChild("Island")
+        local islandPivot = islandStats:GetPivot()
+        local islandPosition = islandPivot.Position
+        local distance = (position - islandPosition).Magnitude
+
+        if position.Y > islandPosition.Y then
+            if not nearestIsland or distance < (position - nearestIsland:WaitForChild("Island"):GetPivot().Position).Magnitude then
+                nearestIsland = island
+            end
+        end
+
+        print("Island:", island.Name, "Distance:", distance, "Valid:", position.Y > islandPosition.Y)
+    end
+
+    return nearestIsland
+end
+
+local function teleportToIsland(island)
+    local args = {
+        [1] = "Teleport";
+        [2] = "Workspace.Worlds.The Overworld.Islands." .. island.Name .. ".Island.Portal.Spawn";
+    }
+
+    game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9):WaitForChild("Framework", 9e9):WaitForChild("Network", 9e9):WaitForChild("Remote", 9e9):WaitForChild("Event", 9e9):FireServer(unpack(args))
+end
+
+local function setJumpPower(power)
+    local player = game.Players.LocalPlayer
+    local humanoid = workspace:WaitForChild(player.Name).Humanoid
+    humanoid.JumpPower = power
+    humanoid.JumpHeight = power
+end
+
+function getNearestEggName(position) 
+    local renderedStorage = Workspace:WaitForChild("Rendered")
+    local nearestEgg
+
+    for _, folder in pairs(renderedStorage:getChildren()) do
+        if folder.Name == "Chunker" then
+            for _, chunker in pairs(folder:getChildren()) do
+                if (chunker:IsA("Model")) then
+                    local chunkerPos = chunker:GetPivot().Position
+                    local distance = (position - chunkerPos).Magnitude
+                    if not nearestEgg or distance < (position - nearestEgg:GetPivot().Position).Magnitude then
+                        nearestEgg = chunker
+                    end
+                end
+            end
+        end
+    end
+
+    return nearestEgg.Name
+end
+
+function hatchEgg(rift)
+    task.spawn(function()
+        while taskStates["Auto Hatch Rifts"] and taskStates["Rift: " .. rift:GetPivot().Position.Y] do
+            local nearestEgg = getNearestEggName(rift:GetPivot().Position)
+            print("Hatching Egg:", nearestEgg)
+            local args = {
+                [1] = "HatchEgg";
+                [2] = nearestEgg;
+                [3] = 6;
+            }
+
+            game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9):WaitForChild("Framework", 9e9):WaitForChild("Network", 9e9):WaitForChild("Remote", 9e9):WaitForChild("Event", 9e9):FireServer(unpack(args))
+
+            task.wait(0.3)
+        end
+    end)
+end
+
+
+function moveToPos(rift)
+    local targetPos = rift:GetPivot().Position + Vector3.new(0, 10, 0)
+    local root = game.Players.LocalPlayer.Character.HumanoidRootPart
+    local playerPos = root.Position
+    
+    local models = workspace:WaitForChild("Stages"):FindFirstChild("Model")
+    if not models then
+        print("Model not found")
+        return
+    end
+
+    local part = models:FindFirstChild("Part")
+    if not part then
+        print("Part not found")
+        return
+    end
+
+    part.Position = root.Position - Vector3.new(0, 3, 0)
+    local moveSpeedPoggers = 6
+    local updateTime = 1
+    local moveSpeed = moveSpeedPoggers
+    local finishedMove = false
+    local riftHeight = rift:GetPivot().Position.Y
+    local toTarget1 = targetPos - part.Position
+    local distance1 = toTarget1.Magnitude
+    if (distance1 < 1500) then
+        moveSpeed = moveSpeedPoggers / 1.5
+    end
+    if (distance1 < 1000) then
+        moveSpeed = moveSpeedPoggers / 2
+    end
+    if (distance1 < 500) then
+        moveSpeed = moveSpeedPoggers / 3
+    end
+    if (distance1 < 100) then
+        moveSpeed = moveSpeedPoggers / 5
+    end
+    task.spawn(function()
+        local slowedDown = false
+        print("Moving to Rift:", rift.Name .. " at height:", riftHeight)
+        while taskStates["Rift: " .. riftHeight] do
+            local toTarget = targetPos - part.Position
+            local distance = toTarget.Magnitude
+
+            if distance < 300 and not slowedDown then
+                slowedDown = true
+                moveSpeed = 2
+            end
+            if distance - moveSpeed <= 0 then
+                finishedMove = true
+            end
+
+            local direction = toTarget.Unit
+            local moveDelta = moveSpeed * direction
+
+            print("Moving up, distance remaining:", distance)
+            part.Position = part.Position + moveDelta * updateTime
+            root.CFrame = part.CFrame + Vector3.new(0, 3, 0)
+            task.wait(0.01)
+            if finishedMove then
+                print("Finished moving to Rift:", rift.Name)
+                moveSpeed = moveSpeedPoggers
+                task.wait(3)
+                part.Position = Vector3.new(0, 0, 0)
+                if taskStates["Auto Hatch Rifts"] then
+                    hatchEgg(rift)
+                    print("Hatching Rift:", rift.Name)
+                end
+                break
+            end
+        end
+    end)
+end
+
+local function moveToRift(rift)
+    local pivot = rift:GetPivot()
+    local player = game.Players.LocalPlayer.Character.HumanoidRootPart
+    
+    print("Moving to Rift:", rift.Name, "Position:", pivot.Position)
+    local nearestIsland = getNearestIsland(pivot.Position)
+    teleportToIsland(nearestIsland)
+    task.wait(2)
+    moveToPos(rift)
+
+end
+
+function getRiftTimer(rift)
+    local timer = rift:WaitForChild("Display"):WaitForChild("SurfaceGui"):WaitForChild("Timer").ContentText
+    return timer
+end
+
+function riftTimer(rift) 
+    local height = rift:GetPivot().Position.Y
+    local multiplier = getLuckMultiplier(rift)
+    task.spawn(function()
+        local baseName = "Rift: " .. rift.Name
+        if multiplier then
+            baseName = baseName .. " " .. multiplier
+        end
+        print("Starting timer for", baseName)
+        while buttonMap["Rift: " .. height] do
+            local timer = getRiftTimer(rift)
+            buttonMap["Rift: " .. height].label.Text = baseName .. "    -   [" .. timer .. "]" 
+            task.wait(1)
+        end
+    end)
+end
+
+for _, rift in pairs(riftsFolder:GetChildren()) do
+    if rift:IsA("Model") then
+        local height = rift:GetPivot().Position.Y
+
+        local multiplier = getLuckMultiplier(rift)
+        local displayName = "Rift: " .. rift.Name
+        if multiplier then
+            displayName = displayName .. " " .. multiplier
+        end
+        createCheckbox("Rift: " .. height, false, function()
+            moveToRift(rift)
+        end, displayName)
+        riftTimer(rift)
+        if multiplier then
+            print("Rift:", rift.Name, "Luck Multiplier:", multiplier, "Height", height)
+        else
+            print("Rift:", rift.Name, "has no luck multiplier.", "Height", height)
+        end
+    end
+end
+
+riftsFolder.ChildAdded:Connect(function(child)
+    if child:IsA("Model") then
+
+        local rift = child
+        local height = rift:GetPivot().Position.Y
+
+        local multiplier = getLuckMultiplier(rift)
+        local displayName = "Rift: " .. rift.Name
+        if multiplier then
+            displayName = displayName .. " " .. multiplier
+        end
+        createCheckbox("Rift: " .. height, false, function()
+            moveToRift(rift)
+        end, displayName) 
+        riftTimer(rift)
+        if multiplier then
+            print("NEW: Rift:", rift.Name, "Luck Multiplier:", multiplier)
+        else
+            print("NEW: Rift:", rift.Name, "has no luck multiplier.")
+        end
+    end
+end)
+
+riftsFolder.ChildRemoved:Connect(function(child)
+    if child:IsA("Model") then
+        local rift = child
+        local height = rift:GetPivot().Position.Y
+        removeCheckbox("Rift: " .. height)
+        print("Rift removed: " .. rift.Name)
+    end
 end)
