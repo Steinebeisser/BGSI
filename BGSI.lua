@@ -210,7 +210,7 @@ function openGifts(amount)
 
         game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Framework"):WaitForChild("Network"):WaitForChild("Remote"):WaitForChild("Event"):FireServer(unpack(args))
 
-        -- gift:Destroy()
+        gift:Destroy()
     end
 end
 
@@ -491,6 +491,34 @@ createCheckbox("Open Genie Menu", false, function()
 
     genieRoot.CFrame = cframePos
     isOpenGenie = true
+end)
+
+
+local enchanterOldPos
+local isOpenEnchanter = false
+createCheckbox("Open enchanter", false, function()
+    taskStates["Open enchanter"] = false
+    local enchanterRoot = workspace:WaitForChild("Worlds"):WaitForChild("The Overworld"):WaitForChild("Islands"):WaitForChild("The Void"):WaitForChild("Island"):WaitForChild("EnchanterActivation"):WaitForChild("Root")
+
+    if isOpenEnchanter then
+        enchanterRoot.CFrame = enchanterOldPos
+        isOpenEnchanter = false
+        local ref = buttonMap["Open enchanter"]
+        if ref then
+            ref.checkmark.Visible = false
+        end
+        return
+    end 
+
+    local player =game.Players.localPlayer
+    local name = player.Name
+
+    local cframePos = workspace:WaitForChild(name):WaitForChild("HumanoidRootPart").CFrame
+
+    enchanterOldPos = enchanterRoot.CFrame
+
+    enchanterRoot.CFrame = cframePos
+    isOpenEnchanter = true
 end)
 
 local blackmarkedOldPos
