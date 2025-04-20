@@ -471,7 +471,7 @@ function sendWebHook(webhook, message, embed)
     })
 end
 
-function createPetHatchEmbed(petName, hatchRarity, imageUrl, bubbleCount, eggCount)
+function createPetHatchEmbed(petName, hatchRarity, imageUrl, bubbleCount, eggCount, hexColor)
     local descriptionText = ""
     local raw = hatchRarity:gsub("%%", "")
     local numberRarity = tonumber(raw)
@@ -504,7 +504,7 @@ function createPetHatchEmbed(petName, hatchRarity, imageUrl, bubbleCount, eggCou
     local embed = {
         title = petName,
         description = descriptionText,
-        color = 0x00ffcc,
+        color = hexColor,
         thumbnail = imageUrl and { url = imageUrl } or nil,
         footer = {
             text = "Praise to Steinebeisser"
@@ -586,7 +586,7 @@ createCheckbox("Hatch Webhook", false, function()
             end
         end)
         
-        local rarityThreshold = 0.001
+        local rarityThreshold = 5 --0.001
         local webhook = "https://discord.com/api/webhooks/1362564811380228306/WrVSHzYpAvk0ufBaaMak0SLRuhuojXehNBuGJMRYAQFav6ksx6CJQwU6urHI2zbTuxRn"
 
         while taskStates["Hatch Webhook"] do
@@ -603,8 +603,13 @@ createCheckbox("Hatch Webhook", false, function()
 
                             local eggCount = getEggCount()
                             local bubbleCount = getBubbleCount()
+                            local textColor = hatch:FindFirstChild("Label").TextColor3
+                            local r = math.floor(textColor.R * 255)
+                            local g = math.floor(textColor.G * 255)
+                            local b = math.floor(textColor.B * 255)
+                            local hexColor = r * 256^2 + g * 256 + b
                         
-                            sendWebHook(webhook, nil, createPetHatchEmbed(hatch.Name, hatchRarity, getAssetUrl(assetID), bubbleCount, eggCount))
+                            sendWebHook(webhook, nil, createPetHatchEmbed(hatch.Name, hatchRarity, getAssetUrl(assetID), bubbleCount, eggCount, hexColor))
                         end
                     end
                 end
