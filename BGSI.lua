@@ -611,7 +611,7 @@ createCheckbox("Hatch Webhook", false, function()
 
                             if r == 0xFF and g >= 0x70 and g <= 0xe0 and b >= 0x00 and b <= 0x0b then
                                 hexColor = 0xFFBE00 -- SHINY
-                            end else if r >= 0x45 and r <= 0xef and g >= 0x00 and g <= 0x30 and b == 0xFF then
+                            elseif r >= 0x45 and r <= 0xef and g >= 0x00 and g <= 0x30 and b == 0xFF then
                                 hexColor = 0xC30CFF -- MYTHIC
                             else 
                                 hexColor = 0xFFFFFF -- WANDOM
@@ -768,6 +768,145 @@ createCheckbox("Open Blackmarked", false, function()
     isOpenBlack = true
 end)
 
+local eggsSectionLabel = Instance.new("TextLabel")
+eggsSectionLabel.Size = UDim2.new(1, -10, 0, 25)
+eggsSectionLabel.Text = "Eggs:"
+eggsSectionLabel.TextColor3 = Color3.new(1, 1, 1)
+eggsSectionLabel.Font = Enum.Font.SourceSansBold
+eggsSectionLabel.TextSize = 20
+eggsSectionLabel.BackgroundTransparency = 1
+eggsSectionLabel.Parent = scrollingFrame
+
+function moveToPos(position, taskStateName)
+    local root = game.Players.LocalPlayer.Character.HumanoidRootPart
+    local playerPos = root.Position
+    print("MOVING FROM ", playerPos, " TO ", position)
+    
+    position = position + Vector3.new(0, 10, 0)
+
+    local models = workspace:WaitForChild("Stages"):FindFirstChild("Model")
+    if not models then
+        print("Model not found")
+        return
+    end
+
+    local part = models:FindFirstChild("Part")
+    if not part then
+        print("Part not found")
+        return
+    end
+
+    part.Position = root.Position - Vector3.new(0, 3, 0)
+    local moveSpeedPoggers = 6
+    local updateTime = 1
+    local moveSpeed = moveSpeedPoggers
+    local finishedMove = false
+
+    local toTarget1 = position - part.Position
+    local distance1 = toTarget1.Magnitude
+    if (distance1 < 1500) then
+        moveSpeed = moveSpeedPoggers / 1.5
+    end
+    if (distance1 < 1000) then
+        moveSpeed = moveSpeedPoggers / 2
+    end
+    if (distance1 < 500) then
+        moveSpeed = moveSpeedPoggers / 3
+    end
+    if (distance1 < 100) then
+        moveSpeed = moveSpeedPoggers / 5
+    end
+    task.spawn(function()
+        local slowedDown = false
+        print("Moving to Position:", position, " taskStateName:", taskStateName)
+        while taskStates[taskStateName] do
+            local toTarget = position - part.Position
+            local distance = toTarget.Magnitude
+
+            if distance < 300 and not slowedDown then
+                slowedDown = true
+                moveSpeed = 2
+            end
+            if distance - moveSpeed <= 0 then
+                finishedMove = true
+            end
+
+            local direction = toTarget.Unit
+            part.Position = part.Position + moveSpeed * direction
+            root.CFrame = part.CFrame -- + Vector3.new(0, 0, 0)
+
+            task.wait(0.01)
+            
+            if finishedMove then
+                print("Finished moving to Position:", position)
+                moveSpeed = moveSpeedPoggers
+                task.wait(1)
+                part.Position = Vector3.new(0, 0, 0)
+                break
+            end
+        end
+    end)
+end
+
+local function getNearestIsland(position)
+    local islandsFolder = workspace:WaitForChild("Worlds"):WaitForChild("The Overworld"):WaitForChild("Islands")
+    local nearestIsland
+
+    for _, island in pairs(islandsFolder:GetChildren()) do
+        local islandStats = island:WaitForChild("Island")
+        local islandPivot = islandStats:GetPivot()
+        local islandPosition = islandPivot.Position
+        local distance = (position - islandPosition).Magnitude
+
+        if not nearestIsland or distance < (position - nearestIsland:WaitForChild("Island"):GetPivot().Position).Magnitude then
+            nearestIsland = island
+        end
+
+        print("Island:", island.Name, "Distance:", distance, "Valid:", position.Y > islandPosition.Y)
+    end
+
+    return nearestIsland
+end
+
+local function teleportToIsland(island)
+    local args = {
+        [1] = "Teleport";
+        [2] = "Workspace.Worlds.The Overworld.Islands." .. island.Name .. ".Island.Portal.Spawn";
+    }
+
+    game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9):WaitForChild("Framework", 9e9):WaitForChild("Network", 9e9):WaitForChild("Remote", 9e9):WaitForChild("Event", 9e9):FireServer(unpack(args))
+end
+
+
+local dictionary = {
+    ["[Event] Pastel Egg"] = Vector3.new(-390.15374755859375, 12013.009765625, -57.59688949584961),
+    ["[Event]Bunny Egg"] = Vector3.new(-404.39666748046875, 12013.29296875, -61.605796813964844),
+}
+
+function moveToEgg(egg, taskStateName)
+    moveToPos(egg, taskStateName)
+end
+
+for _, egg in pairs(dictionary) do
+    createCheckbox(_, false, function()
+        print("Egg:", egg)
+        local nearestIsland = getNearestIsland(egg)
+        local root = game.Players.LocalPlayer.Character.HumanoidRootPart
+        print("Nearest Island:", nearestIsland)
+        local playerDistance = (egg - root.Position).Magnitude
+        print("Player Distance:", playerDistance)
+        if (nearestIsland:WaitForChild("Island"):GetPivot().Position - root.Position).Magnitude < playerDistance then
+            print("Teleporting to Island")
+            teleportToIsland(nearestIsland)
+            task.wait(2)
+            moveToEgg(egg, _)
+        else 
+            moveToEgg(egg, _)
+            print("ALIVE")
+        end
+    end)
+end
+
 
 
 -- Rift UI Section
@@ -805,35 +944,6 @@ local function getLuckMultiplier(rift)
     end
 
     return nil
-end
-
-local function getNearestIsland(position)
-    local islandsFolder = workspace:WaitForChild("Worlds"):WaitForChild("The Overworld"):WaitForChild("Islands")
-    local nearestIsland
-
-    for _, island in pairs(islandsFolder:GetChildren()) do
-        local islandStats = island:WaitForChild("Island")
-        local islandPivot = islandStats:GetPivot()
-        local islandPosition = islandPivot.Position
-        local distance = (position - islandPosition).Magnitude
-
-        if not nearestIsland or distance < (position - nearestIsland:WaitForChild("Island"):GetPivot().Position).Magnitude then
-            nearestIsland = island
-        end
-
-        print("Island:", island.Name, "Distance:", distance, "Valid:", position.Y > islandPosition.Y)
-    end
-
-    return nearestIsland
-end
-
-local function teleportToIsland(island)
-    local args = {
-        [1] = "Teleport";
-        [2] = "Workspace.Worlds.The Overworld.Islands." .. island.Name .. ".Island.Portal.Spawn";
-    }
-
-    game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9):WaitForChild("Framework", 9e9):WaitForChild("Network", 9e9):WaitForChild("Remote", 9e9):WaitForChild("Event", 9e9):FireServer(unpack(args))
 end
 
 local function setJumpPower(power)
@@ -883,7 +993,7 @@ function hatchEgg(rift)
 end
 
 
-function moveToPos(rift)
+function moveToRiftPos(rift)
     local targetPos = rift:GetPivot().Position + Vector3.new(0, 10, 0)
     local root = game.Players.LocalPlayer.Character.HumanoidRootPart
     local playerPos = root.Position
@@ -939,7 +1049,7 @@ function moveToPos(rift)
             local moveDelta = moveSpeed * direction
 
             print("Moving up, distance remaining:", distance)
-            part.Position = part.Position + moveDelta * updateTime
+            part.Position = part.Position + moveDelta
             root.CFrame = part.CFrame + Vector3.new(0, 3, 0)
             task.wait(0.01)
             if finishedMove then
@@ -965,7 +1075,7 @@ local function moveToRift(rift)
     local nearestIsland = getNearestIsland(pivot.Position)
     teleportToIsland(nearestIsland)
     task.wait(2)
-    moveToPos(rift)
+    moveToRiftPos(rift)
 
 end
 
