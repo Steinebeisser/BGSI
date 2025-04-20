@@ -601,7 +601,7 @@ createCheckbox("Hatch Webhook", false, function()
             end
         end)
         
-        local rarityThreshold = 0.05
+        local rarityThreshold = 0.002
         local webhook = "https://discord.com/api/webhooks/1362564811380228306/WrVSHzYpAvk0ufBaaMak0SLRuhuojXehNBuGJMRYAQFav6ksx6CJQwU6urHI2zbTuxRn"
 
         while taskStates["Hatch Webhook"] do
