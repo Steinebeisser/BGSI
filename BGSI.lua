@@ -1003,9 +1003,17 @@ function moveToPos(position, taskStateName)
     end)
 end
 
+local extraIslands = {
+    { Name = "Spawn", Position = Vector3.new(-0.8327484130859375, 9.823179244995117, -21.460800170898438) },
+    { Name = "[Event] Easter Island", Position = Vector3.new(-393.50921630859375, 12015.1982421875, 149.67340087890625) },
+}
+
+local isExtraIsland = false
+
 local function getNearestIsland(position)
     local islandsFolder = workspace:WaitForChild("Worlds"):WaitForChild("The Overworld"):WaitForChild("Islands")
     local nearestIsland
+    local nearestIslandPosition = Vector3.new(0, 0, 0)
 
     for _, island in pairs(islandsFolder:GetChildren()) do
         local islandStats = island:WaitForChild("Island")
@@ -1013,17 +1021,46 @@ local function getNearestIsland(position)
         local islandPosition = islandPivot.Position
         local distance = (position - islandPosition).Magnitude
 
-        if not nearestIsland or distance < (position - nearestIsland:WaitForChild("Island"):GetPivot().Position).Magnitude then
+        if not nearestIsland or distance < (position - nearestIslandPosition).Magnitude then
             nearestIsland = island
+            nearestIslandPosition = islandPosition
+            isExtraIsland = false
         end
 
         print("Island:", island.Name, "Distance:", distance, "Valid:", position.Y > islandPosition.Y)
+    end
+
+    for _, extraIsland in pairs(extraIslands) do
+        local distance = (position - extraIsland.Position).Magnitude
+        if not nearestIsland or distance < (position - nearestIslandPosition).Magnitude then
+            nearestIsland = extraIsland
+            nearestIslandPosition = extraIsland.Position
+            isExtraIsland = true
+        end
     end
 
     return nearestIsland
 end
 
 local function teleportToIsland(island)
+    if island.Name == "Spawn" then
+        local args = {
+            [1] = "Teleport",
+            [2] = "Workspace.Worlds.The Overworld.FastTravel.Spawn"
+        }
+        
+        game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Framework"):WaitForChild("Network"):WaitForChild("Remote"):WaitForChild("Event"):FireServer(unpack(args))        
+        return
+    elseif island.Name == "[Event] Easter Island" then
+        local args = {
+            [1] = "Teleport",
+            [2] = "Workspace.Event.Portal.Spawn"
+        }
+            
+        game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Framework"):WaitForChild("Network"):WaitForChild("Remote"):WaitForChild("Event"):FireServer(unpack(args))
+        return
+    end
+
     local args = {
         [1] = "Teleport";
         [2] = "Workspace.Worlds.The Overworld.Islands." .. island.Name .. ".Island.Portal.Spawn";
@@ -1035,7 +1072,7 @@ end
 
 local eggPositions = {
     { name = "[Event] Pastel Egg", position = Vector3.new(-390.15374755859375, 12013.009765625, -57.59688949584961) },
-    { name = "[Event]Bunny Egg", position = Vector3.new(-404.39666748046875, 12013.29296875, -61.605796813964844) },
+    { name = "[Event] Bunny Egg", position = Vector3.new(-404.39666748046875, 12013.29296875, -61.605796813964844) },
     { name = "Common Egg", position = Vector3.new(-7.299672603607178, 10.2268648147583, -82.11334228515625) },
     { name = "Spotted Egg", position = Vector3.new(-7.268064022064209, 10.2268648147583, -71.30366516113281) },
     { name = "Iceshard Egg", position = Vector3.new(-7.1924262046813965, 10.2268648147583, -60.178550720214844) },
@@ -1062,14 +1099,29 @@ for _, egg in pairs(eggPositions) do
         print("Nearest Island:", nearestIsland)
         local playerDistance = (egg.position - root.Position).Magnitude
         print("Player Distance:", playerDistance)
-        if (nearestIsland:WaitForChild("Island"):GetPivot().Position - root.Position).Magnitude < playerDistance then
-            print("Teleporting to Island")
-            teleportToIsland(nearestIsland)
-            task.wait(2)
-            moveToEgg(egg.position, egg.name .. egg.position.Y)
-        else 
-            moveToEgg(egg.position, egg.name .. egg.position.Y)
-            print("ALIVE")
+        if isExtraIsland then
+            print("Is Extra Island")
+            print("ISLAND DISTANCE:", (nearestIsland.Position - egg.position).Magnitude)
+            print("Island Name:", nearestIsland.Name)
+            if (nearestIsland.Position - egg.position).Magnitude < playerDistance then
+                print("Teleporting to island...")
+                teleportToIsland(nearestIsland)
+                task.wait(2)
+                moveToEgg(egg.position, egg.name .. egg.position.Y)
+            else
+                moveToEgg(egg.position, egg.name .. egg.position.Y)
+                print("ALIVE")
+            end
+        else
+            if (nearestIsland:WaitForChild("Island"):GetPivot().Position - egg.position).Magnitude < playerDistance then
+                print("Teleporting to Island")
+                teleportToIsland(nearestIsland)
+                task.wait(2)
+                moveToEgg(egg.position, egg.name .. egg.position.Y)
+            else 
+                moveToEgg(egg.position, egg.name .. egg.position.Y)
+                print("ALIVE")
+            end
         end
     end, egg.name)
 end
