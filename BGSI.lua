@@ -214,6 +214,21 @@ function openGifts(amount)
     end
 end
 
+createCheckbox("Easter Island", false, function()
+    local args = {
+        [1] = "Teleport",
+        [2] = "Workspace.Event.Portal.Spawn"
+    }
+        
+    game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Framework"):WaitForChild("Network"):WaitForChild("Remote"):WaitForChild("Event"):FireServer(unpack(args))
+
+    taskStates["Easter Island"] = false
+    local ref = buttonMap["Easter Island"]
+    if ref then
+        ref.checkmark.Visible = false
+    end
+end, "Teleport to Easter Island")
+
 createCheckbox("Blow Bubble", true, function()
     task.spawn(function()
         while taskStates["Blow Bubble"] do
