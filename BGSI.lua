@@ -608,6 +608,14 @@ createCheckbox("Hatch Webhook", false, function()
                             local g = math.floor(textColor.G * 255)
                             local b = math.floor(textColor.B * 255)
                             local hexColor = r * 256^2 + g * 256 + b
+
+                            if r = 0xFF and g >= 0x70 and g <= 0xe0 and b >= 0x00 and b <= 0x0b then
+                                hexColor = 0xFFBE00 -- SHINY
+                            end else if r >= 0x45 and r <= 0xef and g >= 0x00 and g <= 0x30 and b == 0xFF then
+                                hexColor = 0xC30CFF -- MYTHIC
+                            else 
+                                hexColor = 0xFFFFFF -- WANDOM
+                            end 
                         
                             sendWebHook(webhook, nil, createPetHatchEmbed(hatch.Name, hatchRarity, getAssetUrl(assetID), bubbleCount, eggCount, hexColor))
                         end
