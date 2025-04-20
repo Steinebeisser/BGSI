@@ -634,7 +634,7 @@ createCheckbox("No Clip", isToggleNoClipEnabled, function()
     end
 end)
 
-createCheckbox("Hatch Webhook", false, function()
+createCheckbox("Hatch Webhook", true, function()
     task.spawn(function()
         local player = game:GetService("Players").LocalPlayer
         local lastHatching = player:WaitForChild("PlayerGui"):WaitForChild("ScreenGui"):WaitForChild("Hatching"):WaitForChild("Last")
@@ -1033,33 +1033,45 @@ local function teleportToIsland(island)
 end
 
 
-local dictionary = {
-    ["[Event] Pastel Egg"] = Vector3.new(-390.15374755859375, 12013.009765625, -57.59688949584961),
-    ["[Event]Bunny Egg"] = Vector3.new(-404.39666748046875, 12013.29296875, -61.605796813964844),
+local eggPositions = {
+    { name = "[Event] Pastel Egg", position = Vector3.new(-390.15374755859375, 12013.009765625, -57.59688949584961) },
+    { name = "[Event]Bunny Egg", position = Vector3.new(-404.39666748046875, 12013.29296875, -61.605796813964844) },
+    { name = "Common Egg", position = Vector3.new(-7.299672603607178, 10.2268648147583, -82.11334228515625) },
+    { name = "Spotted Egg", position = Vector3.new(-7.268064022064209, 10.2268648147583, -71.30366516113281) },
+    { name = "Iceshard Egg", position = Vector3.new(-7.1924262046813965, 10.2268648147583, -60.178550720214844) },
+    { name = "[Ewww] Inferno Egg", position = Vector3.new(49.840545654296875, 10.226863861083984, -10.35765266418457) },
+    { name = "Spikey Egg", position = Vector3.new(-7.173588752746582, 424.1598815917969, 159.3221435546875) },
+    { name = "Crystal Egg", position = Vector3.new(-18.77300262451172, 2666.09326171875, 18.919546127319336) },
+    { name = "Magma Egg", position = Vector3.new(-18.604490280151367, 2666.09326171875, 8.066484451293945) },
+    { name = "Lunar Egg", position = Vector3.new(-57.33772659301758, 6863.5107421875, 79.87572479248047) },
+    { name = "Void Egg", position = Vector3.new(6.147462844848633, 10148.7314453125, 188.08139038085938) },
+    { name = "Hell Egg", position = Vector3.new(-6.661905765533447, 10148.7353515625, 193.9149169921875) },
+    { name = "Nigtmare Egg", position = Vector3.new(-19.217653274536133, 10148.755859375, 185.91783142089844) },
+    { name = "Rainbow Egg", position = Vector3.new(-35.82299041748047, 15973.3515625, 44.0614013671875) },
 }
+
 
 function moveToEgg(egg, taskStateName)
     moveToPos(egg, taskStateName)
 end
 
-for _, egg in pairs(dictionary) do
-    createCheckbox(_, false, function()
-        print("Egg:", egg)
-        local nearestIsland = getNearestIsland(egg)
+for _, egg in pairs(eggPositions) do
+    createCheckbox(egg.name .. egg.position.Y, false, function()
+        local nearestIsland = getNearestIsland(egg.position)
         local root = game.Players.LocalPlayer.Character.HumanoidRootPart
         print("Nearest Island:", nearestIsland)
-        local playerDistance = (egg - root.Position).Magnitude
+        local playerDistance = (egg.position - root.Position).Magnitude
         print("Player Distance:", playerDistance)
         if (nearestIsland:WaitForChild("Island"):GetPivot().Position - root.Position).Magnitude < playerDistance then
             print("Teleporting to Island")
             teleportToIsland(nearestIsland)
             task.wait(2)
-            moveToEgg(egg, _)
+            moveToEgg(egg.position, egg.name .. egg.position.Y)
         else 
-            moveToEgg(egg, _)
+            moveToEgg(egg.position, egg.name .. egg.position.Y)
             print("ALIVE")
         end
-    end)
+    end, egg.name)
 end
 
 
