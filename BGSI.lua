@@ -569,6 +569,71 @@ function getBubbleCount()
     return tonumber(bubbleCount)
 end
 
+local originalState = {}
+
+function storeObjectStates(object)
+    if (object:IsA("BasePart")) then
+        originalState[object] = {
+            CanCollide = object.CanCollide,
+        }
+    end
+
+    for _, child in pairs(object:GetChildren()) do
+        storeObjectStates(child)
+    end
+end
+
+
+function enableNoClip(object)
+    if (object:IsA("BasePart")) then
+        object.CanCollide = false
+    end 
+
+    for _, child in pairs(object:GetChildren()) do
+        enableNoClip(child)
+    end
+end
+
+function restoreNoClip()
+    for object, state in pairs(originalState) do
+        object.CanCollide = state.CanCollide
+    end
+    originalState = {}
+end
+
+local isToggleNoClipEnabled = false
+
+function startNoClip()
+    task.spawn(function()
+        storeObjectStates(workspace)
+        enableNoClip(workspace)
+    end)
+end
+
+function endNoClip()
+    restoreNoClip()
+end
+
+function toggleNoClip()
+    task.spawn(function()
+        isToggleNoClipEnabled = not isToggleNoClipEnabled
+        if isToggleNoClipEnabled then
+            startNoClip()
+        else
+            restoreNoClip()
+        end
+    end)
+end
+
+createCheckbox("No Clip", isToggleNoClipEnabled, function()
+    toggleNoClip()
+    taskStates["No Clip"] = false
+    local ref = buttonMap["No Clip"]
+    if ref then
+        ref.checkmark.Visible = isToggleNoClipEnabled
+    end
+end)
+
 createCheckbox("Hatch Webhook", false, function()
     task.spawn(function()
         local player = game:GetService("Players").LocalPlayer
@@ -792,6 +857,50 @@ eggsSectionLabel.TextSize = 20
 eggsSectionLabel.BackgroundTransparency = 1
 eggsSectionLabel.Parent = scrollingFrame
 
+function moveHumanTo(humanoid, targetPoint, part)
+	local targetReached = false
+
+	-- listen for the humanoid reaching its target
+	local connection
+	connection = humanoid.MoveToFinished:Connect(function(reached)
+		targetReached = true
+		connection:Disconnect()
+		connection = nil
+	end)
+
+    local root = game.Players.LocalPlayer.Character.HumanoidRootPart
+	-- start walking
+	humanoid:MoveTo(targetPoint)
+
+	-- execute on a new thread so as to not yield function
+    while not targetReached do
+        -- does the humanoid still exist?
+        if not (humanoid and humanoid.Parent) then
+            break
+        end
+        -- has the target changed?
+        if humanoid.WalkToPoint ~= targetPoint then
+            break
+        end
+        -- refresh the timeout
+        humanoid:MoveTo(targetPoint)
+        local newPartPosition = Vector3.new(root.Position.X, part.Position.Y, root.Position.Z)
+        part.Position = newPartPosition
+        task.wait(0.1)
+    end
+
+    -- disconnect the connection if it is still connected
+    if connection then
+        connection:Disconnect()
+        connection = nil
+    end
+end
+
+local function andThen(reached)
+	print((reached and "Destination reached!") or "Failed to reach destination!")
+end
+
+
 function moveToPos(position, taskStateName)
     local root = game.Players.LocalPlayer.Character.HumanoidRootPart
     local playerPos = root.Position
@@ -812,54 +921,85 @@ function moveToPos(position, taskStateName)
     end
 
     part.Position = root.Position - Vector3.new(0, 3, 0)
-    local moveSpeedPoggers = 6
+    startNoClip()
+    part.CanCollide = true
+    local moveSpeedPoggers = 10
     local updateTime = 1
     local moveSpeed = moveSpeedPoggers
     local finishedMove = false
 
-    local toTarget1 = position - part.Position
-    local distance1 = toTarget1.Magnitude
-    if (distance1 < 1500) then
+    local toTarget = position - part.Position
+    local distance = toTarget.Magnitude
+    if (distance < 1500) then
         moveSpeed = moveSpeedPoggers / 1.5
     end
-    if (distance1 < 1000) then
+    if (distance < 1000) then
         moveSpeed = moveSpeedPoggers / 2
     end
-    if (distance1 < 500) then
+    if (distance < 500) then
         moveSpeed = moveSpeedPoggers / 3
     end
-    if (distance1 < 100) then
+    if (distance < 100) then
         moveSpeed = moveSpeedPoggers / 5
     end
+
     task.spawn(function()
         local slowedDown = false
         print("Moving to Position:", position, " taskStateName:", taskStateName)
-        while taskStates[taskStateName] do
-            local toTarget = position - part.Position
-            local distance = toTarget.Magnitude
+        -- while taskStates[taskStateName] do
+        --     local toTarget = position - part.Position
+        --     local distance = toTarget.Magnitude
 
-            if distance < 300 and not slowedDown then
-                slowedDown = true
-                moveSpeed = 2
-            end
-            if distance - moveSpeed <= 0 then
-                finishedMove = true
-            end
+        --     if distance < 300 and not slowedDown then
+        --         slowedDown = true
+        --         moveSpeed = 2
+        --     end
+        --     if distance - moveSpeed <= 0 then
+        --         finishedMove = true
+        --     end
 
-            local direction = toTarget.Unit
-            part.Position = part.Position + moveSpeed * direction
-            root.CFrame = part.CFrame -- + Vector3.new(0, 0, 0)
+        --     local direction = toTarget.Unit
+        --     part.Position = part.Position + moveSpeed * direction
+        --     root.CFrame = part.CFrame -- + Vector3.new(0, 0, 0)
 
+        --     task.wait(0.01)
+        --     
+        --     if finishedMove then
+        --         print("Finished moving to Position:", position)
+        --         moveSpeed = moveSpeedPoggers
+        --         task.wait(1)
+        --         part.Position = Vector3.new(0, 0, 0)
+        --         break
+        --     end
+        -- end
+        while math.abs(root.Position.Y - position.Y) > moveSpeed do
+            local directionY = position.Y - root.Position.Y > 0 and 1 or -1
+            part.Position = part.Position + Vector3.new(0, directionY * moveSpeed, 0)
+            root.CFrame = part.CFrame + Vector3.new(0, 5, 0)
             task.wait(0.01)
-            
-            if finishedMove then
-                print("Finished moving to Position:", position)
-                moveSpeed = moveSpeedPoggers
-                task.wait(1)
-                part.Position = Vector3.new(0, 0, 0)
-                break
-            end
         end
+
+        --local notArrived = true
+        --while notArrived do
+        --    local toTarget = position - part.Position
+        --    local distance = toTarget.Magnitude
+        --    if distance - moveSpeed <= 0 then
+        --        notArrived = false
+        --    end
+
+        --    local direction = toTarget.Unit
+        --    part.Position = part.Position + moveSpeed * direction
+        --    rout.CFrame = part.CFrame + Vector3.new(0, 0, 0)+ 
+
+        --    task.wait(0.01)
+        --end
+        local meHumanoid = game.Players.LocalPlayer.Character.Humanoid
+        moveHumanTo(meHumanoid, position, part)
+        print("Finished moving to Position:", position)
+
+        moveSpeed = moveSpeedPoggers
+        endNoClip()
+        part.Position = Vector3.new(0, 0, 0)
     end)
 end
 
@@ -1007,81 +1147,6 @@ function hatchEgg(rift)
     end)
 end
 
-
-function moveToRiftPos(rift)
-    local targetPos = rift:GetPivot().Position + Vector3.new(0, 10, 0)
-    local root = game.Players.LocalPlayer.Character.HumanoidRootPart
-    local playerPos = root.Position
-    
-    local models = workspace:WaitForChild("Stages"):FindFirstChild("Model")
-    if not models then
-        print("Model not found")
-        return
-    end
-
-    local part = models:FindFirstChild("Part")
-    if not part then
-        print("Part not found")
-        return
-    end
-
-    part.Position = root.Position - Vector3.new(0, 3, 0)
-    local moveSpeedPoggers = 6
-    local updateTime = 1
-    local moveSpeed = moveSpeedPoggers
-    local finishedMove = false
-    local riftHeight = rift:GetPivot().Position.Y
-    local toTarget1 = targetPos - part.Position
-    local distance1 = toTarget1.Magnitude
-    if (distance1 < 1500) then
-        moveSpeed = moveSpeedPoggers / 1.5
-    end
-    if (distance1 < 1000) then
-        moveSpeed = moveSpeedPoggers / 2
-    end
-    if (distance1 < 500) then
-        moveSpeed = moveSpeedPoggers / 3
-    end
-    if (distance1 < 100) then
-        moveSpeed = moveSpeedPoggers / 5
-    end
-    task.spawn(function()
-        local slowedDown = false
-        print("Moving to Rift:", rift.Name .. " at height:", riftHeight)
-        while taskStates["Rift: " .. riftHeight] do
-            local toTarget = targetPos - part.Position
-            local distance = toTarget.Magnitude
-
-            if distance < 300 and not slowedDown then
-                slowedDown = true
-                moveSpeed = 2
-            end
-            if distance - moveSpeed <= 0 then
-                finishedMove = true
-            end
-
-            local direction = toTarget.Unit
-            local moveDelta = moveSpeed * direction
-
-            print("Moving up, distance remaining:", distance)
-            part.Position = part.Position + moveDelta
-            root.CFrame = part.CFrame + Vector3.new(0, 3, 0)
-            task.wait(0.01)
-            if finishedMove then
-                print("Finished moving to Rift:", rift.Name)
-                moveSpeed = moveSpeedPoggers
-                task.wait(3)
-                part.Position = Vector3.new(0, 0, 0)
-                if taskStates["Auto Hatch Rifts"] then
-                    hatchEgg(rift)
-                    print("Hatching Rift:", rift.Name)
-                end
-                break
-            end
-        end
-    end)
-end
-
 local function moveToRift(rift)
     local pivot = rift:GetPivot()
     local player = game.Players.LocalPlayer.Character.HumanoidRootPart
@@ -1090,7 +1155,7 @@ local function moveToRift(rift)
     local nearestIsland = getNearestIsland(pivot.Position)
     teleportToIsland(nearestIsland)
     task.wait(2)
-    moveToRiftPos(rift)
+    moveToPos(rift:GetPivot().Position, "Rift: " .. rift:GetPivot().Position.Y)
 
 end
 
@@ -1128,6 +1193,9 @@ if (isScriptEnabled) then
             end
             createCheckbox("Rift: " .. height, false, function()
                 moveToRift(rift)
+                if (taskStates["Auto Hatch Rifts"]) then
+                    hatchEgg(rift)
+                end
             end, displayName)
             riftTimer(rift)
             if multiplier then
