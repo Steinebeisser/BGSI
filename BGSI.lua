@@ -1,176 +1,8 @@
 local player = game.Players.LocalPlayer
-local screenGui = Instance.new("ScreenGui")
-local isScriptEnabled = true
-screenGui.Name = "TaskToggleUI"
-screenGui.ResetOnSpawn = false
-screenGui.Parent = player:WaitForChild("PlayerGui")
-
-local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 300, 0, 350)
-frame.Position = UDim2.new(0.05, 0, 0.3, 0)
-frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-frame.BorderSizePixel = 0
-frame.Parent = screenGui
-frame.Active = true
-frame.Draggable = true
-
-local titleBar = Instance.new("TextLabel")
-titleBar.Size = UDim2.new(1, 0, 0, 30)
-titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-titleBar.TextColor3 = Color3.new(1, 1, 1)
-titleBar.Text = "Task Toggle UI"
-titleBar.Font = Enum.Font.SourceSansBold
-titleBar.TextSize = 18
-titleBar.TextXAlignment = Enum.TextXAlignment.Center
-titleBar.Parent = frame
-
-local scrollingFrame = Instance.new("ScrollingFrame")
-scrollingFrame.Size = UDim2.new(1, -10, 1, -40)
-scrollingFrame.Position = UDim2.new(0, 5, 0, 35)
-scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
-scrollingFrame.BackgroundTransparency = 1
-scrollingFrame.BorderSizePixel = 0
-scrollingFrame.ScrollBarThickness = 6
-scrollingFrame.Parent = frame
-
-local layout = Instance.new("UIListLayout")
-layout.Padding = UDim.new(0, 8)
-layout.FillDirection = Enum.FillDirection.Vertical
-layout.SortOrder = Enum.SortOrder.LayoutOrder
-layout.Parent = scrollingFrame
-
-layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
-end)
-
-local closeButton = Instance.new("TextButton")
-closeButton.Size = UDim2.new(0, 30, 0, 30)
-closeButton.Position = UDim2.new(1, -35, 0, 0)
-closeButton.BackgroundColor3 = Color3.fromRGB(120, 50, 50)
-closeButton.TextColor3 = Color3.new(1, 1, 1)
-closeButton.Text = "X"
-closeButton.Font = Enum.Font.SourceSansBold
-closeButton.TextSize = 20
-closeButton.BorderSizePixel = 0
-closeButton.Parent = frame
-closeButton.ZIndex = 2
-closeButton.AutoButtonColor = true
-
-local isMinimized = false
-
-local toggleButton = Instance.new("TextButton")
-toggleButton.Size = UDim2.new(0, 30, 0, 30)
-toggleButton.Position = UDim2.new(1, -70, 0, 0)
-toggleButton.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
-toggleButton.TextColor3 = Color3.new(1, 1, 1)
-toggleButton.Text = "-"
-toggleButton.Font = Enum.Font.SourceSansBold
-toggleButton.TextSize = 20
-toggleButton.BorderSizePixel = 0
-toggleButton.Parent = frame
-toggleButton.ZIndex = 2
-toggleButton.AutoButtonColor = true
-
-toggleButton.MouseButton1Click:Connect(function()
-    isMinimized = not isMinimized
-    if isMinimized then
-        scrollingFrame.Visible = false
-        toggleButton.Text = "+"
-        frame.Size = UDim2.new(0, 300, 0, 30)
-    else
-        scrollingFrame.Visible = true
-        toggleButton.Text = "-"
-        frame.Size = UDim2.new(0, 300, 0, 350)
-    end
-end)
-
-
-
 local taskStates = {}
 local buttonMap = {}
 
 
-closeButton.MouseButton1Click:Connect(function()
-    print("Exiting...")
-    for name, _ in pairs(taskStates) do
-        taskStates[name] = false
-    end
-    screenGui:Destroy()
-    isScriptEnabled = false
-end)
-
-
-local function createCheckbox(name, defaultState, loopFunc, displayName)
-    displayName = displayName or name
-    local container = Instance.new("Frame")
-    container.Size = UDim2.new(1, -20, 0, 30)
-    container.BackgroundTransparency = 1
-    container.Parent = scrollingFrame
-
-    local checkbox = Instance.new("TextButton")
-    checkbox.Size = UDim2.new(0, 24, 0, 24)
-    checkbox.Position = UDim2.new(0, 0, 0.5, -12)
-    checkbox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-    checkbox.BorderSizePixel = 0
-    checkbox.Text = ""
-    checkbox.AutoButtonColor = false
-    checkbox.Parent = container
-
-    local checkmark = Instance.new("ImageLabel")
-    checkmark.Size = UDim2.new(1, 0, 1, 0)
-    checkmark.Position = UDim2.new(0, 0, 0, 0)
-    checkmark.BackgroundTransparency = 1
-    checkmark.Image = "rbxassetid://6031094678" 
-    checkmark.ImageColor3 = Color3.new(1, 1, 1)
-    checkmark.Visible = defaultState
-    checkmark.Parent = checkbox
-
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -30, 1, 0)
-    label.Position = UDim2.new(0, 30, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Text = displayName
-    label.TextColor3 = Color3.new(1, 1, 1)
-    label.Font = Enum.Font.SourceSans
-    label.TextSize = 18
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = container
-
-    taskStates[name] = defaultState
-
-    if defaultState then
-        task.spawn(loopFunc)
-    end
-
-    checkbox.MouseButton1Click:Connect(function()
-        taskStates[name] = not taskStates[name]
-        checkmark.Visible = taskStates[name]
-
-        if taskStates[name] then
-            print(name .. " enabled")
-            task.spawn(function()
-                loopFunc()
-            end)
-        else
-            print(name .. " disabled")
-        end
-    end)
-
-    buttonMap[name] = {
-        button = checkbox,
-        checkmark = checkmark,
-        label = label,
-        container = container
-    }
-end
-
-local function removeCheckbox(name)
-    if buttonMap[name] then
-        buttonMap[name].container:Destroy()
-        buttonMap[name] = nil
-        taskStates[name] = nil
-    end
-end
 
 local remote = game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9)
     :WaitForChild("Framework", 9e9)
@@ -214,7 +46,7 @@ function openGifts(amount)
     end
 end
 
-createCheckbox("Easter Island", false, function()
+function deleteToEasterIsland()
     local args = {
         [1] = "Teleport",
         [2] = "Workspace.Event.Portal.Spawn"
@@ -227,9 +59,9 @@ createCheckbox("Easter Island", false, function()
     if ref then
         ref.checkmark.Visible = false
     end
-end, "Teleport to Easter Island")
+end
 
-createCheckbox("Blow Bubble", true, function()
+function blowBubble()
     task.spawn(function()
         while taskStates["Blow Bubble"] do
             local args = { [1] = "BlowBubble" }
@@ -237,10 +69,11 @@ createCheckbox("Blow Bubble", true, function()
             task.wait(0.1)
         end
     end)
-end)
+end
+
 
 local originalSellPos
-createCheckbox("Auto Sell", false, function()
+function autoSell()
     task.spawn(function()
         while taskStates["Auto Sell"] do
             local args = {
@@ -262,12 +95,11 @@ createCheckbox("Auto Sell", false, function()
             task.wait(0.1)
         end
     end)
-end,
-"Auto Sell - Broken")
+end
 
-createCheckbox("Open Island Chest", false, function()
+function openGoldenChest()
     task.spawn(function()
-        while taskStates["Open Island Chest"] do
+        while taskStates["Open Golden Chest"] do
             local args = {
                 [1] = "UnlockRiftChest",
                 [2] = "golden-chest",
@@ -277,9 +109,9 @@ createCheckbox("Open Island Chest", false, function()
             task.wait(0.1)
         end
     end)
-end)
+end
 
-createCheckbox("Open Royal Chest", false, function()
+function openRoyalChest()
     task.spawn(function()
         while taskStates["Open Royal Chest"] do
             local args = {
@@ -291,9 +123,9 @@ createCheckbox("Open Royal Chest", false, function()
             task.wait(0.1)
         end
     end)
-end)
+end
 
-createCheckbox("Claim Chests", true, function()
+function claimChests()
     task.spawn(function()
         while taskStates["Claim Chests"] do
             local remote = game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9)
@@ -313,11 +145,11 @@ createCheckbox("Claim Chests", true, function()
             task.wait(10)
         end
     end)
-end)
+end
+
 
 afk_counter = 0
-
-createCheckbox("Anti AFK", true, function()
+function antiAFK()
     task.spawn(function()
         local vu = game:GetService("VirtualUser")
         game:GetService("Players").LocalPlayer.Idled:Connect(function()
@@ -330,10 +162,9 @@ createCheckbox("Anti AFK", true, function()
             end
         end)
     end)
-end)
+end
 
-
-createCheckbox("Auto Craft Potions", false, function() 
+function autoCraftPotions() 
     potionTypes = {"Lucky", "Speed", "Mythic", "Coins"}
 
     for _, potion in potionTypes do
@@ -354,9 +185,9 @@ createCheckbox("Auto Craft Potions", false, function()
     if ref then
         ref.checkmark.Visible = false
     end
-end)
+end
 
-createCheckbox("Buy Alien Shop", true, function()
+function autoBuyAlienShop()
     task.spawn(function()
         while taskStates["Buy Alien Shop"] do
             for i = 1, 3 do
@@ -365,16 +196,14 @@ createCheckbox("Buy Alien Shop", true, function()
                     [2] = "alien-shop";
                     [3] = i;
                 }
-
                 game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9):WaitForChild("Framework", 9e9):WaitForChild("Network", 9e9):WaitForChild("Remote", 9e9):WaitForChild("Event", 9e9):FireServer(unpack(args))
             end
-
             task.wait(0.1)
         end
     end)
-end)
+end
 
-createCheckbox("Buy Blackmarket Shop", true, function()
+function autoBuyBlackmarketShop()
     task.spawn(function()
         while taskStates["Buy Blackmarket Shop"] do
             for i = 1, 3 do
@@ -390,9 +219,9 @@ createCheckbox("Buy Blackmarket Shop", true, function()
             task.wait(0.1)
         end
     end)
-end)
+end
 
-createCheckbox("Claim Playtime Rewards", true, function()
+function claimPlaytimeRewards()
     task.spawn(function()
         while taskStates["Claim Playtime Rewards"] do
             for i=1, 9 do 
@@ -407,9 +236,9 @@ createCheckbox("Claim Playtime Rewards", true, function()
         task.wait(10)
         end
     end)
-end)
+end
 
-createCheckbox("Claim Spinwheels", true, function()
+function claimSpinwheel()
     task.spawn(function()
         while taskStates["Claim Spinwheels"] do
             local args = {
@@ -421,9 +250,9 @@ createCheckbox("Claim Spinwheels", true, function()
             task.wait(10)
         end
     end)
-end)
+end
 
-createCheckbox("Auto Doggy Jump", true, function()
+function autoDoggyJump()
     task.spawn(function()
         while taskStates["Auto Doggy Jump"] do
             for i = 1, 3 do
@@ -437,7 +266,7 @@ createCheckbox("Auto Doggy Jump", true, function()
             task.wait(10)
         end
     end)
-end)
+end
 
 local httprequest = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
 local HttpService = game:GetService("HttpService")
@@ -547,7 +376,7 @@ function getAssetUrl(assetId)
     return nil
 end
 
-local function logChildren(parent, indent)
+function logChildren(parent, indent)
     indent = indent or ""  
     for _, child in pairs(parent:GetChildren()) do
         print(indent .. child.Name .. " (Type: " .. child.ClassName .. ")")
@@ -625,16 +454,16 @@ function toggleNoClip()
     end)
 end
 
-createCheckbox("No Clip", isToggleNoClipEnabled, function()
+function noClip()
     toggleNoClip()
     taskStates["No Clip"] = false
     local ref = buttonMap["No Clip"]
     if ref then
         ref.checkmark.Visible = isToggleNoClipEnabled
     end
-end)
+end
 
-createCheckbox("Hatch Webhook", true, function()
+function sendHatchWebhook()
     task.spawn(function()
         local player = game:GetService("Players").LocalPlayer
         local lastHatching = player:WaitForChild("PlayerGui"):WaitForChild("ScreenGui"):WaitForChild("Hatching"):WaitForChild("Last")
@@ -706,9 +535,9 @@ createCheckbox("Hatch Webhook", true, function()
             task.wait(0.1)
         end
     end)
-end) 
+end
 
-createCheckbox("Use Tickets", false, function()
+function useTickets()
     task.spawn(function()
         while taskStates["Use Tickets"] do
 
@@ -727,21 +556,19 @@ createCheckbox("Use Tickets", false, function()
             task.wait(0.1)
         end
     end)
-    end,
-    "Use Tickets <Only Enable if in zone and disable afterwards otherwise bugs out>"
-)
+end
 
-createCheckbox("Myster Gift", false, function()
+function openMysteryGift(giftAmount)
     task.spawn(function()
         while taskStates["Myster Gift"] do
-            openGifts(10)
+            openGifts(giftAmount)
 
             task.wait(0.1)
         end
     end)
-end, "Mystery Gift x10")
+end
 
-createCheckbox("Auto Collect Coints", false, function()
+function autoCollectCoins() 
     task.spawn(function()
         while taskStates["Auto Collect Coints"] do
             local renderedStorage = Workspace:WaitForChild("Rendered")
@@ -764,11 +591,11 @@ createCheckbox("Auto Collect Coints", false, function()
             task.wait(0.1)
         end
     end)
-end)
+end
 
 local genieOldPos
 local isOpenGenie = false
-createCheckbox("Open Genie Menu", false, function()
+function openGenieMenu()
     taskStates["Open Genie Menu"] = false
     local genieRoot = workspace:WaitForChild("Worlds"):WaitForChild("The Overworld"):WaitForChild("Islands"):WaitForChild("Zen"):WaitForChild("Island"):WaitForChild("GemGenie"):WaitForChild("Root")
 
@@ -791,12 +618,11 @@ createCheckbox("Open Genie Menu", false, function()
 
     genieRoot.CFrame = cframePos
     isOpenGenie = true
-end)
-
+end
 
 local enchanterOldPos
 local isOpenEnchanter = false
-createCheckbox("Open enchanter", false, function()
+function openEnchanterMenu()
     taskStates["Open enchanter"] = false
     local enchanterRoot = workspace:WaitForChild("Worlds"):WaitForChild("The Overworld"):WaitForChild("Islands"):WaitForChild("The Void"):WaitForChild("Island"):WaitForChild("EnchanterActivation"):WaitForChild("Root")
 
@@ -819,11 +645,12 @@ createCheckbox("Open enchanter", false, function()
 
     enchanterRoot.CFrame = cframePos
     isOpenEnchanter = true
-end)
+end
+
 
 local blackmarkedOldPos
 local isOpenBlack = false
-createCheckbox("Open Blackmarked", false, function()
+function openBlackmarkedMenu()
     taskStates["Open Blackmarked"] = false
     local blackmarkedRoot = workspace:WaitForChild("Worlds"):WaitForChild("The Overworld"):WaitForChild("Islands"):WaitForChild("The Void"):WaitForChild("Island"):WaitForChild("Vendor"):WaitForChild("Activation"):WaitForChild("Root")
 
@@ -846,16 +673,7 @@ createCheckbox("Open Blackmarked", false, function()
 
     blackmarkedRoot.CFrame = cframePos
     isOpenBlack = true
-end)
-
-local eggsSectionLabel = Instance.new("TextLabel")
-eggsSectionLabel.Size = UDim2.new(1, -10, 0, 25)
-eggsSectionLabel.Text = "Eggs:"
-eggsSectionLabel.TextColor3 = Color3.new(1, 1, 1)
-eggsSectionLabel.Font = Enum.Font.SourceSansBold
-eggsSectionLabel.TextSize = 20
-eggsSectionLabel.BackgroundTransparency = 1
-eggsSectionLabel.Parent = scrollingFrame
+end
 
 function moveHumanTo(humanoid, targetPoint, part)
 	local targetReached = false
@@ -1070,77 +888,61 @@ local function teleportToIsland(island)
 end
 
 
-local eggPositions = {
-    { name = "[Event] Pastel Egg", position = Vector3.new(-390.15374755859375, 12013.009765625, -57.59688949584961) },
-    { name = "[Event] Bunny Egg", position = Vector3.new(-404.39666748046875, 12013.29296875, -61.605796813964844) },
-    { name = "Common Egg", position = Vector3.new(-7.299672603607178, 10.2268648147583, -82.11334228515625) },
-    { name = "Spotted Egg", position = Vector3.new(-7.268064022064209, 10.2268648147583, -71.30366516113281) },
-    { name = "Iceshard Egg", position = Vector3.new(-7.1924262046813965, 10.2268648147583, -60.178550720214844) },
-    { name = "[Ewww] Inferno Egg", position = Vector3.new(49.840545654296875, 10.226863861083984, -10.35765266418457) },
-    { name = "Spikey Egg", position = Vector3.new(-7.173588752746582, 424.1598815917969, 159.3221435546875) },
-    { name = "Crystal Egg", position = Vector3.new(-18.77300262451172, 2666.09326171875, 18.919546127319336) },
-    { name = "Magma Egg", position = Vector3.new(-18.604490280151367, 2666.09326171875, 8.066484451293945) },
-    { name = "Lunar Egg", position = Vector3.new(-57.33772659301758, 6863.5107421875, 79.87572479248047) },
-    { name = "Void Egg", position = Vector3.new(6.147462844848633, 10148.7314453125, 188.08139038085938) },
-    { name = "Hell Egg", position = Vector3.new(-6.661905765533447, 10148.7353515625, 193.9149169921875) },
-    { name = "Nigtmare Egg", position = Vector3.new(-19.217653274536133, 10148.755859375, 185.91783142089844) },
-    { name = "Rainbow Egg", position = Vector3.new(-35.82299041748047, 15973.3515625, 44.0614013671875) },
-}
-
-
 function moveToEgg(egg, taskStateName)
     moveToPos(egg, taskStateName)
 end
 
-for _, egg in pairs(eggPositions) do
-    createCheckbox(egg.name .. egg.position.Y, false, function()
-        local nearestIsland = getNearestIsland(egg.position)
-        local root = game.Players.LocalPlayer.Character.HumanoidRootPart
-        print("Nearest Island:", nearestIsland)
-        local playerDistance = (egg.position - root.Position).Magnitude
-        print("Player Distance:", playerDistance)
-        if isExtraIsland then
-            print("Is Extra Island")
-            print("ISLAND DISTANCE:", (nearestIsland.Position - egg.position).Magnitude)
-            print("Island Name:", nearestIsland.Name)
-            if (nearestIsland.Position - egg.position).Magnitude < playerDistance then
-                print("Teleporting to island...")
-                teleportToIsland(nearestIsland)
-                task.wait(2)
-                moveToEgg(egg.position, egg.name .. egg.position.Y)
-            else
-                moveToEgg(egg.position, egg.name .. egg.position.Y)
-                print("ALIVE")
-            end
-        else
-            if (nearestIsland:WaitForChild("Island"):GetPivot().Position - egg.position).Magnitude < playerDistance then
-                print("Teleporting to Island")
-                teleportToIsland(nearestIsland)
-                task.wait(2)
-                moveToEgg(egg.position, egg.name .. egg.position.Y)
-            else 
-                moveToEgg(egg.position, egg.name .. egg.position.Y)
-                print("ALIVE")
-            end
-        end
-    end, egg.name)
+local islandHatcher = {}
+local activeRifts = {}
+
+function addToIslandHatcher(islandName)
+    islandHatcher[islandName] = true
+end
+
+function enableWatcher()
+
+end
+
+function checkExistingIslands()
+
 end
 
 
 
--- Rift UI Section
-local riftSectionLabel = Instance.new("TextLabel")
-riftSectionLabel.Size = UDim2.new(1, -10, 0, 25)
-riftSectionLabel.Text = "Rifts:"
-riftSectionLabel.TextColor3 = Color3.new(1, 1, 1)
-riftSectionLabel.Font = Enum.Font.SourceSansBold
-riftSectionLabel.TextSize = 20
-riftSectionLabel.BackgroundTransparency = 1
-riftSectionLabel.Parent = scrollingFrame
+-- for _, egg in pairs(eggPositions) do
+--     createCheckbox(egg.displayName .. egg.position.Y, false, function()
+--         local nearestIsland = getNearestIsland(egg.position)
+--         local root = game.Players.LocalPlayer.Character.HumanoidRootPart
+--         print("Nearest Island:", nearestIsland)
+--         local playerDistance = (egg.position - root.Position).Magnitude
+--         print("Player Distance:", playerDistance)
+--         if isExtraIsland then
+--             print("Is Extra Island")
+--             print("ISLAND DISTANCE:", (nearestIsland.Position - egg.position).Magnitude)
+--             print("Island displayName:", nearestIsland.displayName)
+--             if (nearestIsland.Position - egg.position).Magnitude < playerDistance then
+--                 print("Teleporting to island...")
+--                 teleportToIsland(nearestIsland)
+--                 task.wait(2)
+--                 moveToEgg(egg.position, egg.displayName .. egg.position.Y)
+--             else
+--                 moveToEgg(egg.position, egg.displayName .. egg.position.Y)
+--                 print("ALIVE")
+--             end
+--         else
+--             if (nearestIsland:WaitForChild("Island"):GetPivot().Position - egg.position).Magnitude < playerDistance then
+--                 print("Teleporting to Island")
+--                 teleportToIsland(nearestIsland)
+--                 task.wait(2)
+--                 moveToEgg(egg.position, egg.displayName .. egg.position.Y)
+--             else 
+--                 moveToEgg(egg.position, egg.displayName .. egg.position.Y)
+--                 print("ALIVE")
+--             end
+--         end
+--     end, egg.displayName)
+-- end
 
-
-createCheckbox("Auto Hatch Rifts", true, function()
-end)
 
 local riftsFolder = workspace.Rendered:WaitForChild("Rifts")
 
@@ -1198,26 +1000,26 @@ function getNearestEggName(position)
     return nearestEgg.Name
 end
 
-createCheckbox("Fast Hatch", false, function()
+function fastHatchNearestEgg()
     task.spawn(function()
         while taskStates["Fast Hatch"] do
             local nearestEgg = getNearestEggName(game.Players.LocalPlayer.Character.HumanoidRootPart.Position)
             hatchNearestEgg(nearestEgg)
         end
     end)
-end, "Fast Hatch nearest Egg")
+end
 
 function hatchNearestEgg(nearestEgg)
-            print("Hatching Egg:", nearestEgg)
-            local args = {
-                [1] = "HatchEgg";
-                [2] = nearestEgg;
-                [3] = 6;
-            }
+    print("Hatching Egg:", nearestEgg)
+    local args = {
+        [1] = "HatchEgg";
+        [2] = nearestEgg;
+        [3] = 6;
+    }
 
-            game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9):WaitForChild("Framework", 9e9):WaitForChild("Network", 9e9):WaitForChild("Remote", 9e9):WaitForChild("Event", 9e9):FireServer(unpack(args))
+    game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9):WaitForChild("Framework", 9e9):WaitForChild("Network", 9e9):WaitForChild("Remote", 9e9):WaitForChild("Event", 9e9):FireServer(unpack(args))
 
-            task.wait(0.3)
+    task.wait(0.3)
 end
 
 function hatchEgg(rift)
@@ -1238,7 +1040,6 @@ local function moveToRift(rift)
     teleportToIsland(nearestIsland)
     task.wait(2)
     moveToPos(rift:GetPivot().Position, "Rift: " .. rift:GetPivot().Position.Y)
-
 end
 
 function getRiftTimer(rift)
@@ -1263,60 +1064,411 @@ function riftTimer(rift)
     end)
 end
 
-if (isScriptEnabled) then
-    for _, rift in pairs(riftsFolder:GetChildren()) do
-        if rift:IsA("Model") then
-            local height = rift:GetPivot().Position.Y
 
-            local multiplier = getLuckMultiplier(rift)
-            local displayName = "Rift: " .. rift.Name
-            if multiplier then
-                displayName = displayName .. " " .. multiplier
-            end
-            createCheckbox("Rift: " .. height, false, function()
-                moveToRift(rift)
-                if (taskStates["Auto Hatch Rifts"]) then
-                    hatchEgg(rift)
-                end
-            end, displayName)
-            riftTimer(rift)
-            if multiplier then
-                print("Rift:", rift.Name, "Luck Multiplier:", multiplier, "Height", height)
-            else
-                print("Rift:", rift.Name, "has no luck multiplier.", "Height", height)
-            end
-        end
+-- UI
+
+
+local screenGui = Instance.new("ScreenGui")
+local isScriptEnabled = true
+screenGui.Name = "TaskToggleUI"
+screenGui.ResetOnSpawn = false
+screenGui.Parent = player:WaitForChild("PlayerGui")
+
+local frame = Instance.new("Frame")
+frame.Size = UDim2.new(0, 300, 0, 350)
+frame.Position = UDim2.new(0.05, 0, 0.3, 0)
+frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+frame.BorderSizePixel = 0
+frame.Parent = screenGui
+frame.Active = true
+frame.Draggable = true
+
+local titleBar = Instance.new("TextLabel")
+titleBar.Size = UDim2.new(1, 0, 0, 30)
+titleBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+titleBar.TextColor3 = Color3.new(1, 1, 1)
+titleBar.Text = "Task Toggle UI"
+titleBar.Font = Enum.Font.SourceSansBold
+titleBar.TextSize = 18
+titleBar.TextXAlignment = Enum.TextXAlignment.Center
+titleBar.Parent = frame
+
+local scrollingFrame = Instance.new("ScrollingFrame")
+scrollingFrame.Size = UDim2.new(1, -10, 1, -40)
+scrollingFrame.Position = UDim2.new(0, 5, 0, 35)
+scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+scrollingFrame.BackgroundTransparency = 1
+scrollingFrame.BorderSizePixel = 0
+scrollingFrame.ScrollBarThickness = 6
+scrollingFrame.Parent = frame
+
+local layout = Instance.new("UIListLayout")
+layout.Padding = UDim.new(0, 8)
+layout.FillDirection = Enum.FillDirection.Vertical
+layout.SortOrder = Enum.SortOrder.LayoutOrder
+layout.Parent = scrollingFrame
+
+layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
+end)
+
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 30, 0, 30)
+closeButton.Position = UDim2.new(1, -35, 0, 0)
+closeButton.BackgroundColor3 = Color3.fromRGB(120, 50, 50)
+closeButton.TextColor3 = Color3.new(1, 1, 1)
+closeButton.Text = "X"
+closeButton.Font = Enum.Font.SourceSansBold
+closeButton.TextSize = 20
+closeButton.BorderSizePixel = 0
+closeButton.Parent = frame
+closeButton.ZIndex = 2
+closeButton.AutoButtonColor = true
+
+local isMinimized = false
+
+local toggleButton = Instance.new("TextButton")
+toggleButton.Size = UDim2.new(0, 30, 0, 30)
+toggleButton.Position = UDim2.new(1, -70, 0, 0)
+toggleButton.BackgroundColor3 = Color3.fromRGB(50, 120, 50)
+toggleButton.TextColor3 = Color3.new(1, 1, 1)
+toggleButton.Text = "-"
+toggleButton.Font = Enum.Font.SourceSansBold
+toggleButton.TextSize = 20
+toggleButton.BorderSizePixel = 0
+toggleButton.Parent = frame
+toggleButton.ZIndex = 2
+toggleButton.AutoButtonColor = true
+
+toggleButton.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    if isMinimized then
+        scrollingFrame.Visible = false
+        toggleButton.Text = "+"
+        frame.Size = UDim2.new(0, 300, 0, 30)
+    else
+        scrollingFrame.Visible = true
+        toggleButton.Text = "-"
+        frame.Size = UDim2.new(0, 300, 0, 350)
+    end
+end)
+
+
+
+
+closeButton.MouseButton1Click:Connect(function()
+    print("Exiting...")
+    for name, _ in pairs(taskStates) do
+        taskStates[name] = false
+    end
+    screenGui:Destroy()
+    isScriptEnabled = false
+end)
+
+
+local function createCheckbox(name, defaultState, loopFunc, displayName)
+    displayName = displayName or name
+    local container = Instance.new("Frame")
+    container.Size = UDim2.new(1, -20, 0, 30)
+    container.BackgroundTransparency = 1
+    container.Parent = scrollingFrame
+
+    local checkbox = Instance.new("TextButton")
+    checkbox.Size = UDim2.new(0, 24, 0, 24)
+    checkbox.Position = UDim2.new(0, 0, 0.5, -12)
+    checkbox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    checkbox.BorderSizePixel = 0
+    checkbox.Text = ""
+    checkbox.AutoButtonColor = false
+    checkbox.Parent = container
+
+    local checkmark = Instance.new("ImageLabel")
+    checkmark.Size = UDim2.new(1, 0, 1, 0)
+    checkmark.Position = UDim2.new(0, 0, 0, 0)
+    checkmark.BackgroundTransparency = 1
+    checkmark.Image = "rbxassetid://6031094678" 
+    checkmark.ImageColor3 = Color3.new(1, 1, 1)
+    checkmark.Visible = defaultState
+    checkmark.Parent = checkbox
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -30, 1, 0)
+    label.Position = UDim2.new(0, 30, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = displayName
+    label.TextColor3 = Color3.new(1, 1, 1)
+    label.Font = Enum.Font.SourceSans
+    label.TextSize = 18
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = container
+
+    taskStates[name] = defaultState
+
+    if defaultState then
+        task.spawn(loopFunc)
     end
 
-    riftsFolder.ChildAdded:Connect(function(child)
-        if child:IsA("Model") then
+    checkbox.MouseButton1Click:Connect(function()
+        taskStates[name] = not taskStates[name]
+        checkmark.Visible = taskStates[name]
 
-            local rift = child
-            local height = rift:GetPivot().Position.Y
-
-            local multiplier = getLuckMultiplier(rift)
-            local displayName = "Rift: " .. rift.Name
-            if multiplier then
-                displayName = displayName .. " " .. multiplier
-            end
-            createCheckbox("Rift: " .. height, false, function()
-                moveToRift(rift)
-            end, displayName) 
-            riftTimer(rift)
-            if multiplier then
-                print("NEW: Rift:", rift.Name, "Luck Multiplier:", multiplier)
-            else
-                print("NEW: Rift:", rift.Name, "has no luck multiplier.")
-            end
+        if taskStates[name] then
+            print(name .. " enabled")
+            task.spawn(function()
+                loopFunc()
+            end)
+        else
+            print(name .. " disabled")
         end
     end)
 
-    riftsFolder.ChildRemoved:Connect(function(child)
-        if child:IsA("Model") then
-            local rift = child
-            local height = rift:GetPivot().Position.Y
-            removeCheckbox("Rift: " .. height)
-            print("Rift removed: " .. rift.Name)
-        end
-    end)
+    buttonMap[name] = {
+        button = checkbox,
+        checkmark = checkmark,
+        label = label,
+        container = container
+    }
 end
+
+local function removeCheckbox(name)
+    if buttonMap[name] then
+        buttonMap[name].container:Destroy()
+        buttonMap[name] = nil
+        taskStates[name] = nil
+    end
+end
+
+createCheckbox("Easter Island", false, function()
+    deleteToEasterIsland()
+end, "Teleport to Easter Island")
+
+createCheckbox("Fast Hatch", false, function()
+    fastHatchNearestEgg()
+end, "Fast Hatch nearest Egg")
+
+createCheckbox("Blow Bubble", true, function()
+    blowBubble()
+end)
+
+createCheckbox("Auto Hatch Rifts", true, function()
+end)
+
+createCheckbox("Auto Sell", false, function()
+    autoSell()
+end, "Auto Sell - Broken")
+
+createCheckbox("Open Golden Chest", false, function()
+    openGoldenChest()
+end)
+
+createCheckbox("Open Royal Chest", false, function()
+    openRoyalChest()
+end)
+
+createCheckbox("Claim Chests", true, function()
+    claimChests()
+end)
+
+createCheckbox("Anti AFK", true, function()
+    antiAFK()
+end)
+
+createCheckbox("Auto Craft Potions", false, function() 
+    autoCraftPotions()
+end)
+
+createCheckbox("Buy Alien Shop", true, function()
+    autoBuyAlienShop()
+end)
+
+createCheckbox("Buy Blackmarket Shop", true, function()
+    autoBuyBlackmarketShop()
+end)
+
+createCheckbox("Claim Playtime Rewards", true, function()
+    claimPlaytimeRewards()
+end)
+
+createCheckbox("Claim Spinwheel", true, function()
+    claimSpinwheel()
+end)
+
+createCheckbox("Auto Doggy Jump", true, function()
+    autoDoggyJump()
+end)
+
+createCheckbox("No Clip", isToggleNoClipEnabled, function()
+    noClip()
+end)
+
+createCheckbox("Hatch Webhook", true, function()
+    sendHatchWebhook()
+end) 
+
+createCheckbox("Use Tickets", false, function()
+    useTickets()
+end, "Use Tickets, stand in circle")
+
+createCheckbox("Myster Gift", false, function()
+    openMysteryGift(10)
+end, "Mystery Gift x10")
+
+createCheckbox("Auto Collect Coins", false, function()
+    autoCollectCoins()
+end)
+
+createCheckbox("Open Genie Menu", false, function()
+    openGenieMenu()
+end)
+
+createCheckbox("Open enchanter", false, function()
+    openEnchanterMenu()
+end)
+
+createCheckbox("Open Blackmarked", false, function()
+    openBlackmarkedMenu()
+end)
+
+local eggsSectionLabel = Instance.new("TextLabel")
+eggsSectionLabel.Size = UDim2.new(1, -10, 0, 25)
+eggsSectionLabel.Text = "Auto Rift Hatcher Egg:"
+eggsSectionLabel.TextColor3 = Color3.new(1, 1, 1)
+eggsSectionLabel.Font = Enum.Font.SourceSansBold
+eggsSectionLabel.TextSize = 20
+eggsSectionLabel.BackgroundTransparency = 1
+eggsSectionLabel.Parent = scrollingFrame
+
+local eggPositions = {
+    { displayName = "[Event] Bunny Egg", name = "event-1", position = Vector3.new(-404.39666748046875, 12013.29296875, -61.605796813964844) },
+    { displayName = "[Event] Pastel Egg", name = "event-2", position = Vector3.new(-390.15374755859375, 12013.009765625, -57.59688949584961) },
+    { displayName = "Common Egg", name = "common-egg", position = Vector3.new(-7.299672603607178, 10.2268648147583, -82.11334228515625) },
+    { displayName = "Spotted Egg", name = "spotted-egg", position = Vector3.new(-7.268064022064209, 10.2268648147583, -71.30366516113281) },
+    { displayName = "Iceshard Egg", name = "iceshard-egg", position = Vector3.new(-7.1924262046813965, 10.2268648147583, -60.178550720214844) },
+    { displayName = "[Ewww] Inferno Egg", name = "[ewww]-inferno-egg", position = Vector3.new(49.840545654296875, 10.226863861083984, -10.35765266418457) },
+    { displayName = "Spikey Egg", name = "spikey-egg", position = Vector3.new(-7.173588752746582, 424.1598815917969, 159.3221435546875) },
+    { displayName = "Crystal Egg", name = "crystal-egg", position = Vector3.new(-18.77300262451172, 2666.09326171875, 18.919546127319336) },
+    { displayName = "Magma Egg", name = "magma-egg", position = Vector3.new(-18.604490280151367, 2666.09326171875, 8.066484451293945) },
+    { displayName = "Lunar Egg", name = "lunar-egg", position = Vector3.new(-57.33772659301758, 6863.5107421875, 79.87572479248047) },
+    { displayName = "Void Egg", name = "void-egg", position = Vector3.new(6.147462844848633, 10148.7314453125, 188.08139038085938) },
+    { displayName = "Hell Egg", name = "hell-egg", position = Vector3.new(-6.661905765533447, 10148.7353515625, 193.9149169921875) },
+    { displayName = "Nigtmare Egg", name = "nigtmare-egg", position = Vector3.new(-19.217653274536133, 10148.755859375, 185.91783142089844) },
+    { displayName = "Rainbow Egg", name = "rainbow-egg", position = Vector3.new(-35.82299041748047, 15973.3515625, 44.0614013671875) },
+}
+
+-- for _, egg in pairs(eggPositions) do
+--     createCheckbox(egg.displayName, false, function()
+--         addToIslandHatcher(egg.name)
+--         enableWatcher()
+--         if checkExistingIslands() then
+--             local bestRift = getBestRift()
+--             moveToRift(bestRift)
+--             hatchEgg(bestRift)
+--         end
+--     end)
+-- end
+
+for _, egg in pairs(eggPositions) do
+    createCheckbox(egg.displayName .. egg.position.Y, false, function()
+        local nearestIsland = getNearestIsland(egg.position)
+        local root = game.Players.LocalPlayer.Character.HumanoidRootPart
+        print("Nearest Island:", nearestIsland)
+        local playerDistance = (egg.position - root.Position).Magnitude
+        print("Player Distance:", playerDistance)
+        if isExtraIsland then
+            print("Is Extra Island")
+            print("ISLAND DISTANCE:", (nearestIsland.Position - egg.position).Magnitude)
+            print("Island Name:", nearestIsland.Name)
+            if (nearestIsland.Position - egg.position).Magnitude < playerDistance then
+                print("Teleporting to island...")
+                teleportToIsland(nearestIsland)
+                task.wait(2)
+                moveToEgg(egg.position, egg.displayName .. egg.position.Y)
+            else
+                moveToEgg(egg.position, egg.displayName .. egg.position.Y)
+                print("ALIVE")
+            end
+        else
+            if (nearestIsland:WaitForChild("Island"):GetPivot().Position - egg.position).Magnitude < playerDistance then
+                print("Teleporting to Island")
+                teleportToIsland(nearestIsland)
+                task.wait(2)
+                moveToEgg(egg.position, egg.displayName .. egg.position.Y)
+            else 
+                moveToEgg(egg.position, egg.displayName .. egg.position.Y)
+                print("ALIVE")
+            end
+        end
+    end, egg.displayName)
+end
+
+-- Rift UI Section
+local riftSectionLabel = Instance.new("TextLabel")
+riftSectionLabel.Size = UDim2.new(1, -10, 0, 25)
+riftSectionLabel.Text = "Rifts:"
+riftSectionLabel.TextColor3 = Color3.new(1, 1, 1)
+riftSectionLabel.Font = Enum.Font.SourceSansBold
+riftSectionLabel.TextSize = 20
+riftSectionLabel.BackgroundTransparency = 1
+riftSectionLabel.Parent = scrollingFrame
+
+for _, rift in pairs(riftsFolder:GetChildren()) do
+    if rift:IsA("Model") then
+        local height = rift:GetPivot().Position.Y
+
+        local multiplier = getLuckMultiplier(rift)
+        local displayName = "Rift: " .. rift.Name
+        if multiplier then
+            displayName = displayName .. " " .. multiplier
+        end
+        createCheckbox("Rift: " .. height, false, function()
+            moveToRift(rift)
+            if taskStates["Auto Hatch Rifts"] then
+                hatchEgg(rift)
+            end
+        end, displayName)
+        riftTimer(rift)
+        if multiplier then
+            print("Rift:", rift.Name, "Luck Multiplier:", multiplier, "Height", height)
+        else
+            print("Rift:", rift.Name, "has no luck multiplier.", "Height", height)
+        end
+    end
+end
+
+riftsFolder.ChildAdded:Connect(function(child)
+    if child:IsA("Model") then
+
+        local rift = child
+        local height = rift:GetPivot().Position.Y
+
+        local multiplier = getLuckMultiplier(rift)
+        local displayName = "Rift: " .. rift.Name
+        if multiplier then
+            displayName = displayName .. " " .. multiplier
+        end
+        createCheckbox("Rift: " .. height, false, function()
+            moveToRift(rift)
+        end, displayName) 
+        riftTimer(rift)
+        if multiplier then
+            print("NEW: Rift:", rift.Name, "Luck Multiplier:", multiplier)
+        else
+            print("NEW: Rift:", rift.Name, "has no luck multiplier.")
+        end
+    end
+end)
+
+riftsFolder.ChildRemoved:Connect(function(child)
+    if child:IsA("Model") then
+        local rift = child
+        local height = rift:GetPivot().Position.Y
+        local multiplier = getLuckMultiplier(rift)
+        removeCheckbox("Rift: " .. height)
+        print("Rift removed: " .. rift.Name)
+        if multiplier then
+            print("Removed: Rift:", rift.Name, "Luck Multiplier:", multiplier)
+        else
+            print("Removed: Rift:", rift.Name, "has no luck multiplier.")
+        end
+    end
+end)
