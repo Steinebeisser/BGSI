@@ -1180,6 +1180,7 @@ function getNearestEggName(position)
         if folder.Name == "Chunker" then
             for _, chunker in pairs(folder:getChildren()) do
                 if (chunker:IsA("Model")) then
+                    print("Chunker Name:", chunker.Name)
                     local chunkerPos = chunker:GetPivot().Position
                     local distance = (position - chunkerPos).Magnitude
                     if not nearestEgg or distance < (position - nearestEgg:GetPivot().Position).Magnitude then
@@ -1190,13 +1191,23 @@ function getNearestEggName(position)
         end
     end
 
+    if not nearestEgg then 
+        return nil 
+    end
+
     return nearestEgg.Name
 end
 
-function hatchEgg(rift)
+createCheckbox("Fast Hatch", false, function()
     task.spawn(function()
-        while taskStates["Auto Hatch Rifts"] and taskStates["Rift: " .. rift:GetPivot().Position.Y] do
-            local nearestEgg = getNearestEggName(rift:GetPivot().Position)
+        while taskStates["Fast Hatch"] do
+            local nearestEgg = getNearestEggName(game.Players.LocalPlayer.Character.HumanoidRootPart.Position)
+            hatchNearestEgg(nearestEgg)
+        end
+    end)
+end, "Fast Hatch nearest Egg")
+
+function hatchNearestEgg(nearestEgg)
             print("Hatching Egg:", nearestEgg)
             local args = {
                 [1] = "HatchEgg";
@@ -1207,6 +1218,13 @@ function hatchEgg(rift)
             game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9):WaitForChild("Framework", 9e9):WaitForChild("Network", 9e9):WaitForChild("Remote", 9e9):WaitForChild("Event", 9e9):FireServer(unpack(args))
 
             task.wait(0.3)
+end
+
+function hatchEgg(rift)
+    task.spawn(function()
+        while taskStates["Auto Hatch Rifts"] and taskStates["Rift: " .. rift:GetPivot().Position.Y] do
+            local nearestEgg = getNearestEggName(rift:GetPivot().Position)
+            hatchNearestEgg(nearestEgg)
         end
     end)
 end
