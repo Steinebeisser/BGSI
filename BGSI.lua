@@ -570,7 +570,7 @@ end
 
 function autoCollectCoins() 
     task.spawn(function()
-        while taskStates["Auto Collect Coints"] do
+        while taskStates["Auto Collect Coins"] do
             local renderedStorage = Workspace:WaitForChild("Rendered")
 
             for _, folder in pairs(renderedStorage:getChildren()) do
@@ -892,21 +892,6 @@ function moveToEgg(egg, taskStateName)
     moveToPos(egg, taskStateName)
 end
 
-local islandHatcher = {}
-local activeRifts = {}
-
-function addToIslandHatcher(islandName)
-    islandHatcher[islandName] = true
-end
-
-function enableWatcher()
-
-end
-
-function checkExistingIslands()
-
-end
-
 
 
 -- for _, egg in pairs(eggPositions) do
@@ -1024,6 +1009,7 @@ end
 
 function hatchEgg(rift)
     task.spawn(function()
+        print("")
         while taskStates["Auto Hatch Rifts"] and taskStates["Rift: " .. rift:GetPivot().Position.Y] do
             local nearestEgg = getNearestEggName(rift:GetPivot().Position)
             hatchNearestEgg(nearestEgg)
@@ -1365,6 +1351,7 @@ createCheckbox("Open Blackmarked", false, function()
     openBlackmarkedMenu()
 end)
 
+
 local eggsSectionLabel = Instance.new("TextLabel")
 eggsSectionLabel.Size = UDim2.new(1, -10, 0, 25)
 eggsSectionLabel.Text = "Auto Rift Hatcher Egg:"
@@ -1404,6 +1391,60 @@ local eggPositions = {
 -- end
 
 -- CHECK HERE WAHHHHHHHHHHHHH
+
+local fallbackEgg = eggPositions[0]
+local activeRifts = {}
+local riftHatchWatcher = {}
+riftHatchWatcher["event-1x10"] = true 
+local gotNewRift = false
+local currentIsland = nil
+
+function addToIslandHatcher(islandName, multiplier)
+    local riftName = islandName .. multiplier
+    riftHatchWatcher[islandName] = true
+
+    if activeRifts[riftName] then
+        -- check if current better, whatevery yk
+        return
+    end
+end
+
+function getBestRift()
+    local bestRift = nil
+    for key, _ in pairs(riftHatchWatcher) do
+        if activeRifts[key] then
+            bestRift = activeRifts[key]
+        end
+    end
+    return bestRift
+end
+
+function autoHatchRift(bestRift)
+    moveToRift(bestRift)
+    hatchEgg(bestRift)
+    task.spawn(function()
+        while taskStates["Auto Hatch Rifts"] do 
+            local newBestRift = getBestRift()
+            if newBestRift ~= bestRift then
+                autoHatchRift(newBestRift)
+            end
+            task.wait(0.1)
+        end
+    end)
+end
+
+function autoHatchRifts()
+    local bestRift = getBestRift()
+    if bestRift then
+        autoHatchRift(bestRift)
+    end
+end
+
+
+
+createCheckbox("Auto Hatch Rifts", false, function()
+    autoHatchRifts()
+end)
 
 for _, egg in pairs(eggPositions) do
     createCheckbox(egg.displayName .. egg.position.Y, false, function()
@@ -1466,8 +1507,11 @@ for _, rift in pairs(riftsFolder:GetChildren()) do
         end, displayName)
         riftTimer(rift)
         if multiplier then
+            local riftMultName = rift.Name .. multiplier
+            activeRifts[riftMultName] = rift
             print("Rift:", rift.Name, "Luck Multiplier:", multiplier, "Height", height)
         else
+            activeRifts[rift.Name] = rift
             print("Rift:", rift.Name, "has no luck multiplier.", "Height", height)
         end
     end
@@ -1489,8 +1533,11 @@ riftsFolder.ChildAdded:Connect(function(child)
         end, displayName) 
         riftTimer(rift)
         if multiplier then
+            activeRifts[rift.Name .. multiplier] = rift
+            gotNewRift = true
             print("NEW: Rift:", rift.Name, "Luck Multiplier:", multiplier)
         else
+            activeRifts[rift.Name] = rift
             print("NEW: Rift:", rift.Name, "has no luck multiplier.")
         end
     end
@@ -1504,8 +1551,10 @@ riftsFolder.ChildRemoved:Connect(function(child)
         removeCheckbox("Rift: " .. height)
         print("Rift removed: " .. rift.Name)
         if multiplier then
+            activeRifts[rift.Name .. multiplier] = nil
             print("Removed: Rift:", rift.Name, "Luck Multiplier:", multiplier)
         else
+            activeRifts[rift.Name] = nil
             print("Removed: Rift:", rift.Name, "has no luck multiplier.")
         end
     end
