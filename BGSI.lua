@@ -1406,7 +1406,7 @@ eggsSectionLabel.Parent = scrollingFrame
 local eggPositions = {
     { displayName = "[Event] Bunny Egg", name = "event-1", position = Vector3.new(-404.39666748046875, 12013.29296875, -61.605796813964844) },
     { displayName = "[Event] Pastel Egg", name = "event-2", position = Vector3.new(-395.2763977050781, 12013.009765625, -59.971031188964844) },
-    { displayName = "[Event] Throwback Egg", name = "event-3", position = Vector3.new(0.9970351457595825, 2.5959533900277165e-07, 0.07694736123085022) },
+    { displayName = "[Event] Throwback Egg", name = "event-3", position = Vector3.new(-382.8701477050781, 12013.009765625, -58.511295318603516) },
     { displayName = "Common Egg", name = "common-egg", position = Vector3.new(-7.299672603607178, 10.2268648147583, -82.11334228515625) },
     { displayName = "Spotted Egg", name = "spotted-egg", position = Vector3.new(-7.268064022064209, 10.2268648147583, -71.30366516113281) },
     { displayName = "Iceshard Egg", name = "iceshard-egg", position = Vector3.new(-7.1924262046813965, 10.2268648147583, -60.178550720214844) },
