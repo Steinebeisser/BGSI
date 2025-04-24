@@ -1,6 +1,8 @@
 local player = game.Players.LocalPlayer
 local taskStates = {}
 local buttonMap = {}
+local currentIsland = nil
+
 
 
 
@@ -967,7 +969,7 @@ function getNearestEggName(position)
         if folder.Name == "Chunker" then
             for _, chunker in pairs(folder:getChildren()) do
                 if (chunker:IsA("Model")) then
-                    print("Chunker Name:", chunker.Name)
+                    -- print("Chunker Name:", chunker.Name)
                     local chunkerPos = chunker:GetPivot().Position
                     local distance = (position - chunkerPos).Magnitude
                     if not nearestEgg or distance < (position - nearestEgg:GetPivot().Position).Magnitude then
@@ -985,17 +987,8 @@ function getNearestEggName(position)
     return nearestEgg.Name
 end
 
-function fastHatchNearestEgg()
-    task.spawn(function()
-        while taskStates["Fast Hatch"] do
-            local nearestEgg = getNearestEggName(game.Players.LocalPlayer.Character.HumanoidRootPart.Position)
-            hatchNearestEgg(nearestEgg)
-        end
-    end)
-end
-
 function hatchNearestEgg(nearestEgg)
-    print("Hatching Egg:", nearestEgg)
+    -- print("Hatching Egg:", nearestEgg)
     local args = {
         [1] = "HatchEgg";
         [2] = nearestEgg;
@@ -1007,10 +1000,22 @@ function hatchNearestEgg(nearestEgg)
     task.wait(0.3)
 end
 
-function hatchEgg(rift)
+function fastHatchNearestEgg()
     task.spawn(function()
-        print("")
-        while taskStates["Auto Hatch Rifts"] and taskStates["Rift: " .. rift:GetPivot().Position.Y] do
+        while taskStates["Fast Hatch"] do
+            local nearestEgg = getNearestEggName(game.Players.LocalPlayer.Character.HumanoidRootPart.Position)
+            hatchNearestEgg(nearestEgg)
+        end
+    end)
+end
+
+
+function hatchEgg(rift)
+    print("HATCHING EGG, RIFT:", rift:GetPivot().Position.Y)
+    print("TRUE", taskStates["Auto Hatch Rifts"])
+    print("TRUE", currentIsland == rift)
+    task.spawn(function()
+        while taskStates["Auto Hatch Rifts"] and currentIsland == rift do
             local nearestEgg = getNearestEggName(rift:GetPivot().Position)
             hatchNearestEgg(nearestEgg)
         end
@@ -1029,7 +1034,7 @@ local function moveToRift(rift)
 end
 
 function getRiftTimer(rift)
-    local timer = rift:WaitForChild("Display"):WaitForChild("SurfaceGui"):WaitForChild("Timer").ContentText
+    local timer = rift:WaitForChild("Display", 1):WaitForChild("SurfaceGui", 1):WaitForChild("Timer", 1).ContentText
     return timer
 end
 
@@ -1050,6 +1055,46 @@ function riftTimer(rift)
     end)
 end
 
+function moveToHardEgg(position, eggDisplayName)
+    if not position then 
+        print("MoveToEgg position is nil")
+        return 
+    end
+    if not eggDisplayName then 
+        print("MoveToEgg eggDisplayName is nil")
+        return 
+    end
+    print("MOVING TO EGG")
+    local nearestIsland = getNearestIsland(position)
+    local root = game.Players.LocalPlayer.Character.HumanoidRootPart
+    print("Nearest Island:", nearestIsland)
+    local playerDistance = (position - root.Position).Magnitude
+    print("Player Distance:", playerDistance)
+    if isExtraIsland then
+        print("Is Extra Island")
+        print("ISLAND DISTANCE:", (nearestIsland.Position - position).Magnitude)
+        print("Island Name:", nearestIsland.Name)
+        if (nearestIsland.Position - position).Magnitude < playerDistance then
+            print("Teleporting to island...")
+            teleportToIsland(nearestIsland)
+            task.wait(2)
+            moveToEgg(position, eggDisplayName .. position.Y)
+        else
+            moveToEgg(position, eggDisplayName .. position.Y)
+            print("ALIVE")
+        end
+    else
+        if (nearestIsland:WaitForChild("Island"):GetPivot().Position - position).Magnitude < playerDistance then
+            print("Teleporting to Island")
+            teleportToIsland(nearestIsland)
+            task.wait(2)
+            moveToEgg(position, eggDisplayName .. position.Y)
+        else 
+            moveToEgg(position, eggDisplayName .. position.Y)
+            print("ALIVE")
+        end
+    end
+end
 
 --  ..............................................................................................................................................................................................................................
 --   BIG FAT MINIMAP MARKER BELOW 🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽
@@ -1272,9 +1317,6 @@ createCheckbox("Blow Bubble", true, function()
     blowBubble()
 end)
 
-createCheckbox("Auto Hatch Rifts", true, function()
-end)
-
 createCheckbox("Auto Sell", false, function()
     autoSell()
 end, "Auto Sell - Broken")
@@ -1363,7 +1405,8 @@ eggsSectionLabel.Parent = scrollingFrame
 
 local eggPositions = {
     { displayName = "[Event] Bunny Egg", name = "event-1", position = Vector3.new(-404.39666748046875, 12013.29296875, -61.605796813964844) },
-    { displayName = "[Event] Pastel Egg", name = "event-2", position = Vector3.new(-390.15374755859375, 12013.009765625, -57.59688949584961) },
+    { displayName = "[Event] Pastel Egg", name = "event-2", position = Vector3.new(-395.2763977050781, 12013.009765625, -59.971031188964844) },
+    { displayName = "[Event] Throwback Egg", name = "event-3", position = Vector3.new(0.9970351457595825, 2.5959533900277165e-07, 0.07694736123085022) },
     { displayName = "Common Egg", name = "common-egg", position = Vector3.new(-7.299672603607178, 10.2268648147583, -82.11334228515625) },
     { displayName = "Spotted Egg", name = "spotted-egg", position = Vector3.new(-7.268064022064209, 10.2268648147583, -71.30366516113281) },
     { displayName = "Iceshard Egg", name = "iceshard-egg", position = Vector3.new(-7.1924262046813965, 10.2268648147583, -60.178550720214844) },
@@ -1392,50 +1435,104 @@ local eggPositions = {
 
 -- CHECK HERE WAHHHHHHHHHHHHH
 
-local fallbackEgg = eggPositions[0]
+local fallbackEgg = eggPositions[1]
 local activeRifts = {}
-local riftHatchWatcher = {}
-riftHatchWatcher["event-1x10"] = true 
+local riftHatchWatcher = {
+    { name = "event-2x25", priority = 1 },
+    { name = "event-1x25", priority = 2 },
+    { name = "event-2x10", priority = 3 },
+    { name = "event-1x10", priority = 4 },
+    { name = "spikey-eggx5", priority = 5 },
+}
 local gotNewRift = false
-local currentIsland = nil
 
-function addToIslandHatcher(islandName, multiplier)
-    local riftName = islandName .. multiplier
-    riftHatchWatcher[islandName] = true
-
-    if activeRifts[riftName] then
-        -- check if current better, whatevery yk
-        return
-    end
+function hatchFallbackEgg()
+    print("CALLING MOVE TO EGG")
+    moveToHardEgg(fallbackEgg.position, fallbackEgg.displayName)
+    task.spawn(function() 
+        while taskStates["Auto Hatch Rifts"] and not currentIsland do
+            taskStates["Fast Hatch"] = true
+            task.wait(0.1)
+        end
+    end)
+    fastHatchNearestEgg()
 end
 
 function getBestRift()
     local bestRift = nil
-    for key, _ in pairs(riftHatchWatcher) do
-        if activeRifts[key] then
-            bestRift = activeRifts[key]
+    table.sort(riftHatchWatcher, function(a, b)
+        return a.priority < b.priority
+    end)
+    for _, rift in pairs(riftHatchWatcher) do
+        print("CHECKING RIFT:", rift.name)
+        if activeRifts[rift.name] then
+            bestRift = activeRifts[rift.name]
+            print("FOUND RIFT:", __)
+            break
         end
     end
     return bestRift
 end
 
 function autoHatchRift(bestRift)
+    if currentIsland == bestRift then
+        return
+    end
+    currentIsland = bestRift
     moveToRift(bestRift)
     hatchEgg(bestRift)
     task.spawn(function()
-        while taskStates["Auto Hatch Rifts"] do 
+        while taskStates["Auto Hatch Rifts"] and currentIsland == bestRift and not gotNewRift do 
+            task.wait(1)
+        end
+        if gotNewRift then
             local newBestRift = getBestRift()
             if newBestRift ~= bestRift then
+                currentIsland = nil
                 autoHatchRift(newBestRift)
             end
-            task.wait(0.1)
         end
+    end)
+
+    task.spawn(function()
+        rift_timer= getRiftTimer(bestRift)
+        while rift_timer ~= "0 seconds" and currentIsland == bestRift do
+            task.wait(1)
+            rift_timer = getRiftTimer(bestRift)
+        end
+        print("EGG GONE")
+
+        if currentIsland == bestRift then
+            print("GETTING NEW EGG")
+            currentIsland = nil
+            bestRift = getBestRift()
+            if bestRift then
+                autoHatchRift(bestRift)
+            else
+                print("No rifts found") 
+                hatchFallbackEgg()
+            end
+        end
+
     end)
 end
 
 function autoHatchRifts()
     local bestRift = getBestRift()
     if bestRift then
+        autoHatchRift(bestRift)
+    else 
+        print("No rifts found")
+        hatchFallbackEgg()
+    end
+end
+
+function addToIslandHatcher(islandName, multiplier, priority)
+    local riftName = islandName .. multiplier
+    table.insert(riftHatchWatcher, { name = riftName, priority = priority })
+
+    local bestRift = getBestRift()
+    if bestRift ~= currentIsland then
         autoHatchRift(bestRift)
     end
 end
@@ -1448,35 +1545,7 @@ end)
 
 for _, egg in pairs(eggPositions) do
     createCheckbox(egg.displayName .. egg.position.Y, false, function()
-        local nearestIsland = getNearestIsland(egg.position)
-        local root = game.Players.LocalPlayer.Character.HumanoidRootPart
-        print("Nearest Island:", nearestIsland)
-        local playerDistance = (egg.position - root.Position).Magnitude
-        print("Player Distance:", playerDistance)
-        if isExtraIsland then
-            print("Is Extra Island")
-            print("ISLAND DISTANCE:", (nearestIsland.Position - egg.position).Magnitude)
-            print("Island Name:", nearestIsland.Name)
-            if (nearestIsland.Position - egg.position).Magnitude < playerDistance then
-                print("Teleporting to island...")
-                teleportToIsland(nearestIsland)
-                task.wait(2)
-                moveToEgg(egg.position, egg.displayName .. egg.position.Y)
-            else
-                moveToEgg(egg.position, egg.displayName .. egg.position.Y)
-                print("ALIVE")
-            end
-        else
-            if (nearestIsland:WaitForChild("Island"):GetPivot().Position - egg.position).Magnitude < playerDistance then
-                print("Teleporting to Island")
-                teleportToIsland(nearestIsland)
-                task.wait(2)
-                moveToEgg(egg.position, egg.displayName .. egg.position.Y)
-            else 
-                moveToEgg(egg.position, egg.displayName .. egg.position.Y)
-                print("ALIVE")
-            end
-        end
+        moveToEgg(egg.position, egg.displayName .. egg.position.Y)
     end, egg.displayName)
 end
 
@@ -1510,6 +1579,7 @@ for _, rift in pairs(riftsFolder:GetChildren()) do
             local riftMultName = rift.Name .. multiplier
             activeRifts[riftMultName] = rift
             print("Rift:", rift.Name, "Luck Multiplier:", multiplier, "Height", height)
+            rift:SetAttribute("LuckMultiplier", multiplier)
         else
             activeRifts[rift.Name] = rift
             print("Rift:", rift.Name, "has no luck multiplier.", "Height", height)
@@ -1547,7 +1617,7 @@ riftsFolder.ChildRemoved:Connect(function(child)
     if child:IsA("Model") then
         local rift = child
         local height = rift:GetPivot().Position.Y
-        local multiplier = getLuckMultiplier(rift)
+        local multiplier = rift:GetAttribute("LuckMultiplier") or getLuckMultiplier(rift)
         removeCheckbox("Rift: " .. height)
         print("Rift removed: " .. rift.Name)
         if multiplier then
