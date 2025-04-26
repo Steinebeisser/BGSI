@@ -68,7 +68,7 @@ function blowBubble()
         while taskStates["Blow Bubble"] do
             local args = { [1] = "BlowBubble" }
             remote:FireServer(unpack(args))
-            task.wait(0.1)
+            task.wait(0.25)
         end
     end)
 end
@@ -94,7 +94,7 @@ function autoSell()
 
             game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Framework"):WaitForChild("Network"):WaitForChild("Remote"):WaitForChild("Event"):FireServer(unpack(args))
 
-            task.wait(0.1)
+            task.wait(1)
         end
     end)
 end
@@ -108,7 +108,7 @@ function openGoldenChest()
                 [3] = false
             }
             remote:FireServer(unpack(args))
-            task.wait(0.1)
+            task.wait(0.25)
         end
     end)
 end
@@ -122,7 +122,7 @@ function openRoyalChest()
                 [3] = false
             }
             remote:FireServer(unpack(args))
-            task.wait(0.1)
+            task.wait(0.25)
         end
     end)
 end
@@ -144,7 +144,7 @@ function claimChests()
 
             remote:FireServer("ClaimRiftGift", "gift-rift")
 
-            task.wait(10)
+            task.wait(15)
         end
     end)
 end
@@ -200,7 +200,7 @@ function autoBuyAlienShop()
                 }
                 game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9):WaitForChild("Framework", 9e9):WaitForChild("Network", 9e9):WaitForChild("Remote", 9e9):WaitForChild("Event", 9e9):FireServer(unpack(args))
             end
-            task.wait(0.1)
+            task.wait(1)
         end
     end)
 end
@@ -218,7 +218,7 @@ function autoBuyBlackmarketShop()
                 game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Framework"):WaitForChild("Network"):WaitForChild("Remote"):WaitForChild("Event"):FireServer(unpack(args))
             end
 
-            task.wait(0.1)
+            task.wait(1)
         end
     end)
 end
@@ -590,7 +590,7 @@ function autoCollectCoins()
                 end
             end
 
-            task.wait(0.1)
+            task.wait(1)
         end
     end)
 end
@@ -1452,7 +1452,7 @@ function hatchFallbackEgg()
     task.spawn(function() 
         while taskStates["Auto Hatch Rifts"] and not currentIsland do
             taskStates["Fast Hatch"] = true
-            task.wait(0.1)
+            task.wait(1)
         end
     end)
     fastHatchNearestEgg()
