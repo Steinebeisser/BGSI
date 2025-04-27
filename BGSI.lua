@@ -170,15 +170,15 @@ function autoCraftPotions()
     potionTypes = {"Lucky", "Speed", "Mythic", "Coins"}
 
     for _, potion in potionTypes do
-        for i = 1, 5 do
+        for i = 2, 5 do
             local args = {
                 [1] = "CraftPotion";
                 [2] = potion;
                 [3] = i;
                 [4] = true;
             }
-
-            game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9):WaitForChild("Framework", 9e9):WaitForChild("Network", 9e9):WaitForChild("Remote", 9e9):WaitForChild("Event", 9e9):FireServer(unpack(args))
+            game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Framework"):WaitForChild("Network"):WaitForChild("Remote"):WaitForChild("Event"):FireServer(unpack(args))
+            task.wait(0.25)
         end
     end
 
@@ -188,6 +188,7 @@ function autoCraftPotions()
         ref.checkmark.Visible = false
     end
 end
+
 
 function autoBuyAlienShop()
     task.spawn(function()
@@ -199,6 +200,7 @@ function autoBuyAlienShop()
                     [3] = i;
                 }
                 game:GetService("ReplicatedStorage"):WaitForChild("Shared", 9e9):WaitForChild("Framework", 9e9):WaitForChild("Network", 9e9):WaitForChild("Remote", 9e9):WaitForChild("Event", 9e9):FireServer(unpack(args))
+                task.wait(0.1)
             end
             task.wait(1)
         end
@@ -216,6 +218,7 @@ function autoBuyBlackmarketShop()
                 }
                 
                 game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Framework"):WaitForChild("Network"):WaitForChild("Remote"):WaitForChild("Event"):FireServer(unpack(args))
+                task.wait(0.1)
             end
 
             task.wait(1)
@@ -264,6 +267,7 @@ function autoDoggyJump()
                 }
             
                 game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Framework"):WaitForChild("Network"):WaitForChild("Remote"):WaitForChild("Event"):FireServer(unpack(args))
+                task.wait(5)
             end
             task.wait(10)
         end
@@ -1130,6 +1134,164 @@ function moveToHardEgg(position, eggDisplayName)
     end
 end
 
+local eggPositionsEggFarm = {
+    { displayName = "Common Egg", name = "common-egg", position = Vector3.new(-83.8525619506836, 10.743536949157715, 3.0177695751190186) },
+    { displayName = "Spotted Egg", name = "spotted-egg", position = Vector3.new(-93.11441040039062, 10.743536949157715, 8.814620018005371) },
+    { displayName = "Iceshard Egg", name = "iceshard-egg", position = Vector3.new(-118.06690979003906, 10.743536949157715, 9.143298149108887) },
+    { displayName = "Spikey Egg", name = "spikey-egg", position = Vector3.new(-126.07728576660156, 10.743536949157715, 4.675696849822998) },
+    { displayName = "Magma Egg", name = "magma-egg", position = Vector3.new(-133.72926330566406, 10.74340534210205, -0.26362869143486023) },
+    { displayName = "Crystal Egg", name = "crystal-egg", position = Vector3.new(-140.73500061035156, 10.743536949157715, -6.725001811981201) },
+    { displayName = "Lunar Egg", name = "lunar-egg", position = Vector3.new(-144.6551055908203, 10.743497848510742, -16.392690658569336) },
+    { displayName = "Void Egg", name = "void-egg", position = Vector3.new(-146.36843872070312, 10.743481636047363, -26.53530502319336) },
+    { displayName = "Hell Egg", name = "hell-egg", position = Vector3.new(-146.16233825683594, 11.007079124450684, -36.484493255615234) },
+    { displayName = "Nigtmare Egg", name = "nigtmare-egg", position = Vector3.new(-142.4998779296875, 10.743536949157715, -45.75666809082031) },
+    { displayName = "Rainbow Egg", name = "rainbow-egg", position = Vector3.new(-136.40321350097656, 10.743244171142578, -53.37372970581055) },
+}
+
+local competitiveTasksList = {
+    { taskDescription = "Hatch 250 Common Eggs", todo = "Hatch", egg = "common-egg", priority = 1, task },
+    { taskDescription = "Hatch 250 Spotted Eggs", todo = "Hatch", egg = "spotted-egg", priority = 1, task },
+    { taskDescription = "Hatch 250 Iceshard Eggs", todo = "Hatch", egg = "iceshard-egg", priority = 1, task },
+    { taskDescription = "Hatch 250 Spikey Eggs", todo = "Hatch", egg = "spikey-egg", priority = 1, task },
+    { taskDescription = "Hatch 250 Magma Eggs", todo = "Hatch", egg = "magma-egg", priority = 1, task },
+    { taskDescription = "Hatch 250 Crystal Eggs", todo = "Hatch", egg = "crystal-egg", priority = 1, task },
+    { taskDescription = "Hatch 250 Lunar Eggs", todo = "Hatch", egg = "lunar-egg", priority = 1, task },
+    { taskDescription = "Hatch 250 Void Eggs", todo = "Hatch", egg = "void-egg", priority = 1, task },
+    { taskDescription = "Hatch 250 Hell Eggs", todo = "Hatch", egg = "hell-egg", priority = 1, task },
+    { taskDescription = "Hatch 250 Nigtmare Eggs", todo = "Hatch", egg = "nigtmare-egg", priority = 1, task },
+    { taskDescription = "Hatch 250 Rainbow Eggs", todo = "Hatch", egg = "rainbow-egg", priority = 1, task },
+
+
+    { taskDescription = "Hatch 450 Common Eggs", todo = "Hatch", egg = "common-egg", priority = 2, task },
+    { taskDescription = "Hatch 450 Spotted Eggs", todo = "Hatch", egg = "spotted-egg", priority = 2, task },
+    { taskDescription = "Hatch 450 Iceshard Eggs", todo = "Hatch", egg = "iceshard-egg", priority = 2, task },
+    { taskDescription = "Hatch 450 Spikey Eggs", todo = "Hatch", egg = "spikey-egg", priority = 2, task },
+    { taskDescription = "Hatch 450 Magma Eggs", todo = "Hatch", egg = "magma-egg", priority = 2, task },
+    { taskDescription = "Hatch 450 Crystal Eggs", todo = "Hatch", egg = "crystal-egg", priority = 2, task },
+    { taskDescription = "Hatch 450 Lunar Eggs", todo = "Hatch", egg = "lunar-egg", priority = 2, task },
+    { taskDescription = "Hatch 450 Void Eggs", todo = "Hatch", egg = "void-egg", priority = 2, task },
+    { taskDescription = "Hatch 450 Hell Eggs", todo = "Hatch", egg = "hell-egg", priority = 2, task },
+    { taskDescription = "Hatch 450 Nigtmare Eggs", todo = "Hatch", egg = "nigtmare-egg", priority = 2, task },
+    { taskDescription = "Hatch 450 Rainbow Eggs", todo = "Hatch", egg = "rainbow-egg", priority = 2, task },
+
+
+    { taskDescription = "Hatch 650 Common Eggs", todo = "Hatch", egg = "common-egg", priority = 3, task },
+    { taskDescription = "Hatch 650 Spotted Eggs", todo = "Hatch", egg = "spotted-egg", priority = 3, task },
+    { taskDescription = "Hatch 650 Iceshard Eggs", todo = "Hatch", egg = "iceshard-egg", priority = 3, task },
+    { taskDescription = "Hatch 650 Spikey Eggs", todo = "Hatch", egg = "spikey-egg", priority = 3, task },
+    { taskDescription = "Hatch 650 Magma Eggs", todo = "Hatch", egg = "magma-egg", priority = 3, task },
+    { taskDescription = "Hatch 650 Crystal Eggs", todo = "Hatch", egg = "crystal-egg", priority = 3, task },
+    { taskDescription = "Hatch 650 Lunar Eggs", todo = "Hatch", egg = "lunar-egg", priority = 3, task },
+    { taskDescription = "Hatch 650 Void Eggs", todo = "Hatch", egg = "void-egg", priority = 3, task },
+    { taskDescription = "Hatch 650 Hell Eggs", todo = "Hatch", egg = "hell-egg", priority = 3, task },
+    { taskDescription = "Hatch 650 Nigtmare Eggs", todo = "Hatch", egg = "nigtmare-egg", priority = 3, task },
+    { taskDescription = "Hatch 650 Rainbow Eggs", todo = "Hatch", egg = "rainbow-egg", priority = 3, task },
+
+
+    { taskDescription = "Hatch 200 Common Pets", todo = "Hatch", egg = "common-egg", priority = 4, task },
+    { taskDescription = "Hatch 200 Uncommon Pets", todo = "Hatch", egg = "magma-egg", priority = 4, task },
+    { taskDescription = "Hatch 200 Rare Pets", todo = "Hatch", egg = "iceshard-egg", priority = 4, task },
+    { taskDescription = "Hatch 120 Epic Pets", todo = "Hatch", egg = "spikey-egg", priority = 4, task },
+    { taskDescription = "Hatch 5 Legendary Pets", todo = "Hatch", egg = "spikey-egg", priority = 4, task },
+    { taskDescription = "Hatch 1 Mythic Pet", todo = "Hatch", egg = "spikey-egg", priority = 4, task },
+    { taskDescription = "Hatch 2 Mythic Pets", todo = "Hatch", egg = "spikey-egg", priority = 4, task },
+
+
+    { taskDescription = "Hatch 50 Shiny Pets", todo = "Hatch", egg = "common-egg", priority = 5, task },
+    { taskDescription = "Hatch 80 Shiny Pets", todo = "Hatch", egg = "common-egg", priority = 5, task },
+    
+
+    { taskDescription = "Hatch 1,500 Eggs", todo = "Hatch", egg = "common-egg", priority = 6, task},
+    { taskDescription = "Hatch 2,500 Eggs", todo = "Hatch", egg = "common-egg", priority = 6, task},
+
+
+    { taskDescription = "Play for 10 minutes", todo = "Bubble", egg = "", priority = 7, task },
+    { taskDescription = "Play for 15 minutes", todo = "Bubble", egg = "", priority = 7, task },
+}
+
+local competitiveTasks = player.PlayerGui.ScreenGui.Competitive.Frame.Content.Tasks
+function getBestTask()
+    local bestTask = nil
+    
+    table.sort(competitiveTasksList, function(a, b)
+        return a.priority < b.priority
+    end)
+    for _, task in pairs(competitiveTasks:GetChildren()) do
+        if not task:IsA("Frame") then
+            continue
+        end
+        local taskText = task.Content.Label.ContentText
+        print("Task Text:", taskText)
+        
+        for _, compTask in pairs(competitiveTasksList) do
+            if taskText == compTask.taskDescription then
+                if not bestTask or bestTask.priority > compTask.priority then 
+                    print("Best Task:", taskText, "Priority:", compTask.priority)
+                    bestTask = compTask
+                    bestTask.task = task
+                    break
+                end
+            end
+        end
+    end
+
+    return bestTask
+end
+
+function getEggFarmPosition(eggName)
+    for _, eggPosition in pairs(eggPositionsEggFarm) do
+        if eggPosition.name == eggName then
+            return eggPosition.position
+        end
+    end
+end
+
+function doCompTask(task)
+    print("Starting Competitive Task:", task)
+    if not task then
+        return
+    end
+
+    if task.todo == "Hatch" then
+        local eggPosition = getEggFarmPosition(task.egg)
+        moveToHardEgg(eggPosition, task.taskDescription)
+        taskStates["Fast Hatch"] = true
+        fastHatchNearestEgg()
+    end
+
+    if task.todo == "Bubble" then
+        taskStates["Blow Bubble"] = true
+        taskStates["Fast Hatch"] = false
+    end
+
+
+    local taskProgress = tonumber(task.task.Content.Bar.Label.ContentText:sub(1, -2))
+    local lastTaskProgress
+    while taskStates["Auto Comp Tasks"] do
+        if lastTaskProgress and lastTaskProgress > taskProgress then
+            -- finshih with task new checking
+
+            break
+        end
+        lastTaskProgress = taskProgress
+        taskProgress = tonumber(task.task.Content.Bar.Label.ContentText:sub(1, -2))
+        wait(1)
+    end
+end
+
+function autoCompTasks()
+    task.spawn(function()
+        while taskStates["Auto Comp Tasks"] do
+            local bestTask = getBestTask()
+            if bestTask then
+                hasCompTask = true
+                doCompTask(bestTask)
+            end
+            task.wait(1)
+        end
+    end)
+end
+
 --  ..............................................................................................................................................................................................................................
 --   BIG FAT MINIMAP MARKER BELOW 🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽🔽
 --   █████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████
@@ -1339,9 +1501,9 @@ local function removeCheckbox(name)
     end
 end
 
-createCheckbox("Easter Island", false, function()
-    deleteToEasterIsland()
-end, "Teleport to Easter Island")
+-- GONE EASTER 2025 createCheckbox("Easter Island", false, function()
+-- GONE EASTER 2025     deleteToEasterIsland()
+-- GONE EASTER 2025 end, "Teleport to Easter Island")
 
 createCheckbox("Fast Hatch", false, function()
     fastHatchNearestEgg()
@@ -1349,9 +1511,11 @@ end, "Fast Hatch nearest Egg")
 
 createCheckbox("Remove Hatch Animation", false, function()
     removeHatchAnimation()
-end)
+end, "Remove Hatch Animation\n<Not working on XENO>")
 
-
+createCheckbox("Auto Comp Tasks", false, function()
+    autoCompTasks()
+end, "Auto Competitive Tasks\n<Turn Game English>")
 
 createCheckbox("Blow Bubble", true, function()
     blowBubble()
@@ -1444,9 +1608,9 @@ eggsSectionLabel.BackgroundTransparency = 1
 eggsSectionLabel.Parent = scrollingFrame
 
 local eggPositions = {
-    { displayName = "[Event] Bunny Egg", name = "event-1", position = Vector3.new(-404.39666748046875, 12013.29296875, -61.605796813964844) },
-    { displayName = "[Event] Pastel Egg", name = "event-2", position = Vector3.new(-395.2763977050781, 12013.009765625, -59.971031188964844) },
-    { displayName = "[Event] Throwback Egg", name = "event-3", position = Vector3.new(-382.8701477050781, 12013.009765625, -58.511295318603516) },
+    -- GONE EASTER 2025{ displayName = "[Event] Bunny Egg", name = "event-1", position = Vector3.new(-404.39666748046875, 12013.29296875, -61.605796813964844) },
+    -- GONE EASTER 2025{ displayName = "[Event] Pastel Egg", name = "event-2", position = Vector3.new(-395.2763977050781, 12013.009765625, -59.971031188964844) },
+    -- GONE EASTER 2025{ displayName = "[Event] Throwback Egg", name = "event-3", position = Vector3.new(-382.8701477050781, 12013.009765625, -58.511295318603516) },
     { displayName = "Common Egg", name = "common-egg", position = Vector3.new(-7.299672603607178, 10.2268648147583, -82.11334228515625) },
     { displayName = "Spotted Egg", name = "spotted-egg", position = Vector3.new(-7.268064022064209, 10.2268648147583, -71.30366516113281) },
     { displayName = "Iceshard Egg", name = "iceshard-egg", position = Vector3.new(-7.1924262046813965, 10.2268648147583, -60.178550720214844) },
@@ -1460,6 +1624,7 @@ local eggPositions = {
     { displayName = "Nigtmare Egg", name = "nigtmare-egg", position = Vector3.new(-19.217653274536133, 10148.755859375, 185.91783142089844) },
     { displayName = "Rainbow Egg", name = "rainbow-egg", position = Vector3.new(-35.82299041748047, 15973.3515625, 44.0614013671875) },
 }
+
 
 -- for _, egg in pairs(eggPositions) do
 --     createCheckbox(egg.displayName, false, function()
