@@ -1144,74 +1144,130 @@ local eggPositionsEggFarm = {
     { displayName = "Lunar Egg", name = "lunar-egg", position = Vector3.new(-144.6551055908203, 10.743497848510742, -16.392690658569336) },
     { displayName = "Void Egg", name = "void-egg", position = Vector3.new(-146.36843872070312, 10.743481636047363, -26.53530502319336) },
     { displayName = "Hell Egg", name = "hell-egg", position = Vector3.new(-146.16233825683594, 11.007079124450684, -36.484493255615234) },
-    { displayName = "Nigtmare Egg", name = "nigtmare-egg", position = Vector3.new(-142.4998779296875, 10.743536949157715, -45.75666809082031) },
+    { displayName = "Nightmare Egg", name = "nightmare-egg", position = Vector3.new(-142.4998779296875, 10.743536949157715, -45.75666809082031) },
     { displayName = "Rainbow Egg", name = "rainbow-egg", position = Vector3.new(-136.40321350097656, 10.743244171142578, -53.37372970581055) },
 }
 
 local competitiveTasksList = {
-    { taskDescription = "Hatch 250 Common Eggs", todo = "Hatch", egg = "common-egg", priority = 1, task },
-    { taskDescription = "Hatch 250 Spotted Eggs", todo = "Hatch", egg = "spotted-egg", priority = 1, task },
-    { taskDescription = "Hatch 250 Iceshard Eggs", todo = "Hatch", egg = "iceshard-egg", priority = 1, task },
-    { taskDescription = "Hatch 250 Spikey Eggs", todo = "Hatch", egg = "spikey-egg", priority = 1, task },
-    { taskDescription = "Hatch 250 Magma Eggs", todo = "Hatch", egg = "magma-egg", priority = 1, task },
-    { taskDescription = "Hatch 250 Crystal Eggs", todo = "Hatch", egg = "crystal-egg", priority = 1, task },
-    { taskDescription = "Hatch 250 Lunar Eggs", todo = "Hatch", egg = "lunar-egg", priority = 1, task },
-    { taskDescription = "Hatch 250 Void Eggs", todo = "Hatch", egg = "void-egg", priority = 1, task },
-    { taskDescription = "Hatch 250 Hell Eggs", todo = "Hatch", egg = "hell-egg", priority = 1, task },
-    { taskDescription = "Hatch 250 Nigtmare Eggs", todo = "Hatch", egg = "nigtmare-egg", priority = 1, task },
-    { taskDescription = "Hatch 250 Rainbow Eggs", todo = "Hatch", egg = "rainbow-egg", priority = 1, task },
+    { taskDescription = "Hatch 250 Common Eggs", todo = "Hatch", egg = "common-egg", priority = 1, task , autoReroll = 0},
+    { taskDescription = "Hatch 250 Spotted Eggs", todo = "Hatch", egg = "spotted-egg", priority = 1, task , autoReroll = 0},
+    { taskDescription = "Hatch 250 Iceshard Eggs", todo = "Hatch", egg = "iceshard-egg", priority = 1, task , autoReroll = 0},
+    { taskDescription = "Hatch 250 Spikey Eggs", todo = "Hatch", egg = "spikey-egg", priority = 1, task , autoReroll = 0},
+    { taskDescription = "Hatch 250 Magma Eggs", todo = "Hatch", egg = "magma-egg", priority = 1, task , autoReroll = 0},
+    { taskDescription = "Hatch 250 Crystal Eggs", todo = "Hatch", egg = "crystal-egg", priority = 1, task , autoReroll = 0},
+    { taskDescription = "Hatch 250 Lunar Eggs", todo = "Hatch", egg = "lunar-egg", priority = 1, task , autoReroll = 0},
+    { taskDescription = "Hatch 250 Void Eggs", todo = "Hatch", egg = "void-egg", priority = 1, task , autoReroll = 0},
+    { taskDescription = "Hatch 250 Hell Eggs", todo = "Hatch", egg = "hell-egg", priority = 1, task , autoReroll = 0},
+    { taskDescription = "Hatch 250 Nightmare Eggs", todo = "Hatch", egg = "nightmare-egg", priority = 1, task , autoReroll = 0},
+    { taskDescription = "Hatch 250 Rainbow Eggs", todo = "Hatch", egg = "rainbow-egg", priority = 1, task , autoReroll = 0},
 
 
-    { taskDescription = "Hatch 450 Common Eggs", todo = "Hatch", egg = "common-egg", priority = 2, task },
-    { taskDescription = "Hatch 450 Spotted Eggs", todo = "Hatch", egg = "spotted-egg", priority = 2, task },
-    { taskDescription = "Hatch 450 Iceshard Eggs", todo = "Hatch", egg = "iceshard-egg", priority = 2, task },
-    { taskDescription = "Hatch 450 Spikey Eggs", todo = "Hatch", egg = "spikey-egg", priority = 2, task },
-    { taskDescription = "Hatch 450 Magma Eggs", todo = "Hatch", egg = "magma-egg", priority = 2, task },
-    { taskDescription = "Hatch 450 Crystal Eggs", todo = "Hatch", egg = "crystal-egg", priority = 2, task },
-    { taskDescription = "Hatch 450 Lunar Eggs", todo = "Hatch", egg = "lunar-egg", priority = 2, task },
-    { taskDescription = "Hatch 450 Void Eggs", todo = "Hatch", egg = "void-egg", priority = 2, task },
-    { taskDescription = "Hatch 450 Hell Eggs", todo = "Hatch", egg = "hell-egg", priority = 2, task },
-    { taskDescription = "Hatch 450 Nigtmare Eggs", todo = "Hatch", egg = "nigtmare-egg", priority = 2, task },
-    { taskDescription = "Hatch 450 Rainbow Eggs", todo = "Hatch", egg = "rainbow-egg", priority = 2, task },
+    { taskDescription = "Hatch 450 Common Eggs", todo = "Hatch", egg = "common-egg", priority = 2, task , autoReroll = 0},
+    { taskDescription = "Hatch 450 Spotted Eggs", todo = "Hatch", egg = "spotted-egg", priority = 2, task , autoReroll = 0},
+    { taskDescription = "Hatch 450 Iceshard Eggs", todo = "Hatch", egg = "iceshard-egg", priority = 2, task , autoReroll = 0},
+    { taskDescription = "Hatch 450 Spikey Eggs", todo = "Hatch", egg = "spikey-egg", priority = 2, task , autoReroll = 0},
+    { taskDescription = "Hatch 450 Magma Eggs", todo = "Hatch", egg = "magma-egg", priority = 2, task , autoReroll = 0},
+    { taskDescription = "Hatch 450 Crystal Eggs", todo = "Hatch", egg = "crystal-egg", priority = 2, task , autoReroll = 0},
+    { taskDescription = "Hatch 450 Lunar Eggs", todo = "Hatch", egg = "lunar-egg", priority = 2, task , autoReroll = 0},
+    { taskDescription = "Hatch 450 Void Eggs", todo = "Hatch", egg = "void-egg", priority = 2, task , autoReroll = 0},
+    { taskDescription = "Hatch 450 Hell Eggs", todo = "Hatch", egg = "hell-egg", priority = 2, task , autoReroll = 0},
+    { taskDescription = "Hatch 450 Nightmare Eggs", todo = "Hatch", egg = "nightmare-egg", priority = 2, task , autoReroll = 0},
+    { taskDescription = "Hatch 450 Rainbow Eggs", todo = "Hatch", egg = "rainbow-egg", priority = 2, task , autoReroll = 0},
 
 
-    { taskDescription = "Hatch 650 Common Eggs", todo = "Hatch", egg = "common-egg", priority = 3, task },
-    { taskDescription = "Hatch 650 Spotted Eggs", todo = "Hatch", egg = "spotted-egg", priority = 3, task },
-    { taskDescription = "Hatch 650 Iceshard Eggs", todo = "Hatch", egg = "iceshard-egg", priority = 3, task },
-    { taskDescription = "Hatch 650 Spikey Eggs", todo = "Hatch", egg = "spikey-egg", priority = 3, task },
-    { taskDescription = "Hatch 650 Magma Eggs", todo = "Hatch", egg = "magma-egg", priority = 3, task },
-    { taskDescription = "Hatch 650 Crystal Eggs", todo = "Hatch", egg = "crystal-egg", priority = 3, task },
-    { taskDescription = "Hatch 650 Lunar Eggs", todo = "Hatch", egg = "lunar-egg", priority = 3, task },
-    { taskDescription = "Hatch 650 Void Eggs", todo = "Hatch", egg = "void-egg", priority = 3, task },
-    { taskDescription = "Hatch 650 Hell Eggs", todo = "Hatch", egg = "hell-egg", priority = 3, task },
-    { taskDescription = "Hatch 650 Nigtmare Eggs", todo = "Hatch", egg = "nigtmare-egg", priority = 3, task },
-    { taskDescription = "Hatch 650 Rainbow Eggs", todo = "Hatch", egg = "rainbow-egg", priority = 3, task },
+    { taskDescription = "Hatch 650 Common Eggs", todo = "Hatch", egg = "common-egg", priority = 3, task , autoReroll = 0},
+    { taskDescription = "Hatch 650 Spotted Eggs", todo = "Hatch", egg = "spotted-egg", priority = 3, task , autoReroll = 0},
+    { taskDescription = "Hatch 650 Iceshard Eggs", todo = "Hatch", egg = "iceshard-egg", priority = 3, task , autoReroll = 0},
+    { taskDescription = "Hatch 650 Spikey Eggs", todo = "Hatch", egg = "spikey-egg", priority = 3, task , autoReroll = 0},
+    { taskDescription = "Hatch 650 Magma Eggs", todo = "Hatch", egg = "magma-egg", priority = 3, task , autoReroll = 0},
+    { taskDescription = "Hatch 650 Crystal Eggs", todo = "Hatch", egg = "crystal-egg", priority = 3, task , autoReroll = 0},
+    { taskDescription = "Hatch 650 Lunar Eggs", todo = "Hatch", egg = "lunar-egg", priority = 3, task , autoReroll = 0},
+    { taskDescription = "Hatch 650 Void Eggs", todo = "Hatch", egg = "void-egg", priority = 3, task , autoReroll = 0},
+    { taskDescription = "Hatch 650 Hell Eggs", todo = "Hatch", egg = "hell-egg", priority = 3, task , autoReroll = 0},
+    { taskDescription = "Hatch 650 Nightmare Eggs", todo = "Hatch", egg = "nightmare-egg", priority = 3, task , autoReroll = 0},
+    { taskDescription = "Hatch 650 Rainbow Eggs", todo = "Hatch", egg = "rainbow-egg", priority = 3, task , autoReroll = 0},
 
 
-    { taskDescription = "Hatch 200 Common Pets", todo = "Hatch", egg = "common-egg", priority = 4, task },
-    { taskDescription = "Hatch 200 Uncommon Pets", todo = "Hatch", egg = "magma-egg", priority = 4, task },
-    { taskDescription = "Hatch 200 Rare Pets", todo = "Hatch", egg = "iceshard-egg", priority = 4, task },
-    { taskDescription = "Hatch 120 Epic Pets", todo = "Hatch", egg = "spikey-egg", priority = 4, task },
-    { taskDescription = "Hatch 5 Legendary Pets", todo = "Hatch", egg = "spikey-egg", priority = 4, task },
-    { taskDescription = "Hatch 1 Mythic Pet", todo = "Hatch", egg = "spikey-egg", priority = 4, task },
-    { taskDescription = "Hatch 2 Mythic Pets", todo = "Hatch", egg = "spikey-egg", priority = 4, task },
+    { taskDescription = "Hatch 200 Common Pets", todo = "Hatch", egg = "common-egg", priority = 4, task , autoReroll = 0},
+    { taskDescription = "Hatch 200 Uncommon Pets", todo = "Hatch", egg = "magma-egg", priority = 4, task , autoReroll = 0},
+    { taskDescription = "Hatch 200 Rare Pets", todo = "Hatch", egg = "iceshard-egg", priority = 4, task , autoReroll = 0},
+    { taskDescription = "Hatch 120 Epic Pets", todo = "Hatch", egg = "spikey-egg", priority = 4, task , autoReroll = 0},
+    { taskDescription = "Hatch 5 Legendary Pets", todo = "Hatch", egg = "spikey-egg", priority = 4, task , autoReroll = 0},
+    { taskDescription = "Hatch 1 Mythic Pet", todo = "Hatch", egg = "spikey-egg", priority = 4, task , autoReroll = 1},
+    { taskDescription = "Hatch 2 Mythic Pets", todo = "Hatch", egg = "spikey-egg", priority = 4, task , autoReroll = 1},
 
 
-    { taskDescription = "Hatch 50 Shiny Pets", todo = "Hatch", egg = "common-egg", priority = 5, task },
-    { taskDescription = "Hatch 80 Shiny Pets", todo = "Hatch", egg = "common-egg", priority = 5, task },
+    { taskDescription = "Hatch 50 Shiny Pets", todo = "Hatch", egg = "common-egg", priority = 5, task , autoReroll = 0},
+    { taskDescription = "Hatch 80 Shiny Pets", todo = "Hatch", egg = "common-egg", priority = 5, task , autoReroll = 0},
     
 
-    { taskDescription = "Hatch 1,500 Eggs", todo = "Hatch", egg = "common-egg", priority = 6, task},
-    { taskDescription = "Hatch 2,500 Eggs", todo = "Hatch", egg = "common-egg", priority = 6, task},
+    { taskDescription = "Hatch 1,500 Eggs", todo = "Hatch", egg = "common-egg", priority = 6, task , autoReroll = 1},
+    { taskDescription = "Hatch 2,500 Eggs", todo = "Hatch", egg = "common-egg", priority = 6, task , autoReroll = 1},
 
 
-    { taskDescription = "Play for 10 minutes", todo = "Bubble", egg = "", priority = 7, task },
-    { taskDescription = "Play for 15 minutes", todo = "Bubble", egg = "", priority = 7, task },
+    { taskDescription = "Play for 10 minutes", todo = "Bubble", egg = "", priority = 7, task , autoReroll = 1},
+    { taskDescription = "Play for 15 minutes", todo = "Bubble", egg = "", priority = 7, task , autoReroll = 1},
 }
 
+function rerollTask(taskNumber)
+    local args = {
+        [1] = "CompetitiveReroll",
+        [2] = taskNumber
+    }
+    
+    game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Framework"):WaitForChild("Network"):WaitForChild("Remote"):WaitForChild("Event"):FireServer(unpack(args))
+end
+
+
 local competitiveTasks = player.PlayerGui.ScreenGui.Competitive.Frame.Content.Tasks
+function rerollEmoTasks()
+    
+    table.sort(competitiveTasksList, function(a, b)
+        return a.priority < b.priority
+    end)
+    
+    local i = 0
+    local maxTries = 5
+    
+    while i < maxTries do
+        local taskNumber = 1
+        local rerolled = false
+
+        for _, task in pairs(competitiveTasks:GetChildren()) do
+            if not task:IsA("Frame") then
+                continue
+            end
+
+            local taskText = task.Content.Label.ContentText
+        
+            for _, compTask in pairs(competitiveTasksList) do
+                -- print("Comp Task:", compTask.taskDescription)
+                if taskText == compTask.taskDescription then
+                    if compTask.autoReroll == 1 and taskStates["Auto Reroll Comp Tasks"] then
+                        rerollTask(taskNumber)
+                        rerolled = true
+                    end
+                    break
+                end
+            end
+            taskNumber = taskNumber + 1
+        end
+
+        if not rerolled then
+            break
+        end
+
+        i = i + 1
+        task.wait(0.1)
+    end
+end
+
 function getBestTask()
     local bestTask = nil
+
+    if taskStates["Auto Reroll Comp Tasks"] then
+        rerollEmoTasks()
+    end
     
     table.sort(competitiveTasksList, function(a, b)
         return a.priority < b.priority
@@ -1224,6 +1280,7 @@ function getBestTask()
         print("Task Text:", taskText)
         
         for _, compTask in pairs(competitiveTasksList) do
+            -- print("Comp Task:", compTask.taskDescription)
             if taskText == compTask.taskDescription then
                 if not bestTask or bestTask.priority > compTask.priority then 
                     print("Best Task:", taskText, "Priority:", compTask.priority)
@@ -1512,6 +1569,9 @@ end, "Fast Hatch nearest Egg")
 createCheckbox("Remove Hatch Animation", false, function()
     removeHatchAnimation()
 end, "Remove Hatch Animation\n<Not working on XENO>")
+
+createCheckbox("Auto Reroll Comp Tasks", false, function()
+end, "Auto Reroll Emo Tasks")
 
 createCheckbox("Auto Comp Tasks", false, function()
     autoCompTasks()
