@@ -1318,7 +1318,7 @@ function getEggFarmPosition(eggName)
 end
 
 function doCompTask(task)
-    print("Starting Competitive Task:", task)
+    print("Starting Competitive Task:", task.taskDescription)
     if not task then
         return
     end
