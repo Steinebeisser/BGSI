@@ -1023,10 +1023,15 @@ function hatchEgg(rift)
 end
 
 
-local HatchEgg = require(game.ReplicatedStorage.Client.Effects.HatchEgg)
-local oldPlay = HatchEgg.Play
+local oldPlay 
 local isHatchingAnimationEnabled = false
+local gotOldPlay = false
 function removeHatchAnimation()
+    local HatchEgg = require(game.ReplicatedStorage.Client.Effects.HatchEgg)
+    if not gotOldPlay then
+        oldPlay = HatchEgg.Play
+        gotOldPlay = true
+    end
     isHatchingAnimationEnabled = not isHatchingAnimationEnabled
     if isHatchingAnimationEnabled then
 
