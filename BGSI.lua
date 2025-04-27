@@ -242,7 +242,7 @@ end
 
 function claimSpinwheel()
     task.spawn(function()
-        while taskStates["Claim Spinwheels"] do
+        while taskStates["Claim Spinwheel"] do
             local args = {
                 [1] = "ClaimFreeWheelSpin";
             }
@@ -1011,15 +1011,44 @@ end
 
 
 function hatchEgg(rift)
-    print("HATCHING EGG, RIFT:", rift:GetPivot().Position.Y)
-    print("TRUE", taskStates["Auto Hatch Rifts"])
-    print("TRUE", currentIsland == rift)
+    -- print("HATCHING EGG, RIFT:", rift:GetPivot().Position.Y)
+    -- print("TRUE", taskStates["Auto Hatch Rifts"])
+    -- print("TRUE", currentIsland == rift)
     task.spawn(function()
         while taskStates["Auto Hatch Rifts"] and currentIsland == rift do
             local nearestEgg = getNearestEggName(rift:GetPivot().Position)
             hatchNearestEgg(nearestEgg)
         end
     end)
+end
+
+
+local HatchEgg = require(game.ReplicatedStorage.Client.Effects.HatchEgg)
+local oldPlay = HatchEgg.Play
+local isHatchingAnimationEnabled = false
+function removeHatchAnimation()
+    isHatchingAnimationEnabled = not isHatchingAnimationEnabled
+    if isHatchingAnimationEnabled then
+
+        HatchEgg.Play = function(self, data)
+            self._hatching = true
+            print("Hatched one")
+        
+            task.spawn(function()
+                task.wait(0.01)
+                self._hatching = false
+            end)
+        
+        end
+    else
+        HatchEgg.Play = oldPlay
+    end
+
+    taskStates["Remove Hatch Animation"] = false
+    local ref = buttonMap["Remove Hatch Animation"]
+    if ref then
+        ref.checkmark.Visible = isHatchingAnimationEnabled
+    end
 end
 
 local function moveToRift(rift)
@@ -1064,34 +1093,34 @@ function moveToHardEgg(position, eggDisplayName)
         print("MoveToEgg eggDisplayName is nil")
         return 
     end
-    print("MOVING TO EGG")
+    -- print("MOVING TO EGG")
     local nearestIsland = getNearestIsland(position)
     local root = game.Players.LocalPlayer.Character.HumanoidRootPart
-    print("Nearest Island:", nearestIsland)
+    -- print("Nearest Island:", nearestIsland)
     local playerDistance = (position - root.Position).Magnitude
-    print("Player Distance:", playerDistance)
+    -- print("Player Distance:", playerDistance)
     if isExtraIsland then
-        print("Is Extra Island")
-        print("ISLAND DISTANCE:", (nearestIsland.Position - position).Magnitude)
-        print("Island Name:", nearestIsland.Name)
+        -- print("Is Extra Island")
+        -- print("ISLAND DISTANCE:", (nearestIsland.Position - position).Magnitude)
+        -- print("Island Name:", nearestIsland.Name)
         if (nearestIsland.Position - position).Magnitude < playerDistance then
-            print("Teleporting to island...")
+            -- print("Teleporting to island...")
             teleportToIsland(nearestIsland)
             task.wait(2)
             moveToEgg(position, eggDisplayName .. position.Y)
         else
             moveToEgg(position, eggDisplayName .. position.Y)
-            print("ALIVE")
+            -- print("ALIVE")
         end
     else
         if (nearestIsland:WaitForChild("Island"):GetPivot().Position - position).Magnitude < playerDistance then
-            print("Teleporting to Island")
+            -- print("Teleporting to Island")
             teleportToIsland(nearestIsland)
             task.wait(2)
             moveToEgg(position, eggDisplayName .. position.Y)
         else 
             moveToEgg(position, eggDisplayName .. position.Y)
-            print("ALIVE")
+            -- print("ALIVE")
         end
     end
 end
@@ -1312,6 +1341,12 @@ end, "Teleport to Easter Island")
 createCheckbox("Fast Hatch", false, function()
     fastHatchNearestEgg()
 end, "Fast Hatch nearest Egg")
+
+createCheckbox("Remove Hatch Animation", false, function()
+    removeHatchAnimation()
+end)
+
+
 
 createCheckbox("Blow Bubble", true, function()
     blowBubble()
