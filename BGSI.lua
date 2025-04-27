@@ -708,8 +708,10 @@ function moveHumanTo(humanoid, targetPoint, part)
         end
         -- refresh the timeout
         humanoid:MoveTo(targetPoint)
-        local newPartPosition = Vector3.new(root.Position.X, part.Position.Y, root.Position.Z)
-        part.Position = newPartPosition
+        if part then 
+            local newPartPosition = Vector3.new(root.Position.X, part.Position.Y, root.Position.Z)
+            part.Position = newPartPosition
+        end
         task.wait(0.1)
     end
 
@@ -825,6 +827,12 @@ function moveToPos(position, taskStateName)
         endNoClip()
         part.Position = Vector3.new(0, 0, 0)
     end)
+end
+
+
+function walkToPos(position)
+    local meHumanoid = game.Players.LocalPlayer.Character.Humanoid
+    moveHumanTo(meHumanoid, position)
 end
 
 local extraIslands = {
@@ -1041,7 +1049,7 @@ function removeHatchAnimation()
 
         HatchEgg.Play = function(self, data)
             self._hatching = true
-            print("Hatched one")
+            -- print("Hatched one")
         
             task.spawn(function()
                 task.wait(0.01)
@@ -1218,6 +1226,10 @@ function rerollTask(taskNumber)
     game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Framework"):WaitForChild("Network"):WaitForChild("Remote"):WaitForChild("Event"):FireServer(unpack(args))
 end
 
+function getRerollTokenAmount()
+    local unparsedAmount = player.PlayerGui.ScreenGui.Inventory.Frame.Inner.Items.Main.ScrollingFrame.Powerups.Items["Reroll Orb"].Inner.Button.Inner.Amount.ContentText
+    return unparsedAmount
+end
 
 local competitiveTasks = player.PlayerGui.ScreenGui.Competitive.Frame.Content.Tasks
 function rerollEmoTasks()
@@ -1245,6 +1257,8 @@ function rerollEmoTasks()
                 if taskText == compTask.taskDescription then
                     if compTask.autoReroll == 1 and taskStates["Auto Reroll Comp Tasks"] then
                         rerollTask(taskNumber)
+                        local rerollTokenAmount = getRerollTokenAmount()
+                        print("Rerolled Task: " .. taskText .. " Reroll Tokens Remaining: " .. rerollTokenAmount)
                         rerolled = true
                     end
                     break
@@ -1311,7 +1325,8 @@ function doCompTask(task)
 
     if task.todo == "Hatch" then
         local eggPosition = getEggFarmPosition(task.egg)
-        moveToHardEgg(eggPosition, task.taskDescription)
+        walkToPos(eggPosition)
+        --moveToHardEgg(eggPosition, task.taskDescription)
         taskStates["Fast Hatch"] = true
         fastHatchNearestEgg()
     end
@@ -1327,11 +1342,12 @@ function doCompTask(task)
     while taskStates["Auto Comp Tasks"] do
         if lastTaskProgress and lastTaskProgress > taskProgress then
             -- finshih with task new checking
-
+            print("Finished Task:", task.taskDescription)
             break
         end
         lastTaskProgress = taskProgress
         taskProgress = tonumber(task.task.Content.Bar.Label.ContentText:sub(1, -2))
+        print("Task: " .. task.taskDescription .. " Progress:", taskProgress .. "%")
         wait(1)
     end
 end
@@ -1339,12 +1355,12 @@ end
 function autoCompTasks()
     task.spawn(function()
         while taskStates["Auto Comp Tasks"] do
+            print("Looking for new Task")
             local bestTask = getBestTask()
             if bestTask then
                 hasCompTask = true
                 doCompTask(bestTask)
             end
-            task.wait(1)
         end
     end)
 end
@@ -1575,7 +1591,7 @@ end, "Auto Reroll Emo Tasks")
 
 createCheckbox("Auto Comp Tasks", false, function()
     autoCompTasks()
-end, "Auto Competitive Tasks\n<Turn Game English>")
+end, "Auto Competitive Tasks\n<Turn Game English>\n<Go to spawn egg circle\ncause walking, no noclip>")
 
 createCheckbox("Blow Bubble", true, function()
     blowBubble()
