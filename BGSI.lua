@@ -280,7 +280,10 @@ local HttpService = game:GetService("HttpService")
 local avatarCache = {}
 
 function sendWebHook(webhook, message, embed)
-    if not httprequest or not webhook then return end
+    if not httprequest or not webhook then 
+        print("Failed to do sth")
+        return 
+    end
     local player = game:GetService("Players").LocalPlayer
 
     local userId = player.UserId
@@ -304,12 +307,19 @@ function sendWebHook(webhook, message, embed)
         end
     end
 
-    local data = {
+    local payload = {
         username = username,
         avatar_url = avatarUrl,
-        embeds = { embed },
         allowed_mentions = { parse = {} }
     }
+
+    if message then
+        payload.content = message
+    end
+
+    if embed then
+        payload.embeds = { embed }
+    end
 
     httprequest({
         Url = webhook,
@@ -317,7 +327,7 @@ function sendWebHook(webhook, message, embed)
         Headers = {
             ["Content-Type"] = "application/json"
         },
-        Body = HttpService:JSONEncode(data)
+        Body = HttpService:JSONEncode(payload)
     })
 end
 
@@ -468,6 +478,70 @@ function noClip()
         ref.checkmark.Visible = isToggleNoClipEnabled
     end
 end
+
+local isLightNoClipEnabled = false
+
+local originalLightState = {}
+
+function storeLightObjectStates(object)
+    if (object:IsA("BasePart")) then
+        originalLightState[object] = {
+            CanCollide = object.CanCollide,
+        }
+    end
+
+    for _, child in pairs(object:GetChildren()) do
+        storeLightObjectStates(child)
+    end
+end
+
+function enableLightNoClip(object)
+    if object.Name == "Ground" or object.Name == "Islands" then
+        return
+    end
+    if (object:IsA("BasePart")) then
+        object.CanCollide = false
+    end 
+
+    for _, child in pairs(object:GetChildren()) do
+        enableLightNoClip(child)
+    end
+end
+
+function startLightNoClip()
+    task.spawn(function()
+        storeLightObjectStates(workspace)
+        enableLightNoClip(workspace)
+    end)
+end
+
+function restoreLightNoClip()
+    for object, state in pairs(originalLightState) do
+        object.CanCollide = state.CanCollide
+    end
+    originalLightState = {}
+end
+
+function toggleLightNoClip()
+    task.spawn(function()
+        isLightNoClipEnabled = not isLightNoClipEnabled
+        if isLightNoClipEnabled then
+            startLightNoClip()
+        else
+            restoreLightNoClip()
+        end
+    end)
+end
+
+function lightNoClip()
+    toggleLightNoClip()
+    taskStates["Light No Clip"] = false
+    local ref = buttonMap["Light No Clip"]
+    if ref then
+        ref.checkmark.Visible = isLightNoClipEnabled
+    end
+end
+
 
 function sendHatchWebhook()
     task.spawn(function()
@@ -1143,6 +1217,7 @@ function moveToHardEgg(position, eggDisplayName)
 end
 
 local eggPositionsEggFarm = {
+    { displayName = "[Event] 100M Egg", name = "100m-egg", position = Vector3.new(17.14812469482422, 10.15925121307373, -3.9271082878112793) },
     { displayName = "Common Egg", name = "common-egg", position = Vector3.new(-83.8525619506836, 10.743536949157715, 3.0177695751190186) },
     { displayName = "Spotted Egg", name = "spotted-egg", position = Vector3.new(-93.11441040039062, 10.743536949157715, 8.814620018005371) },
     { displayName = "Iceshard Egg", name = "iceshard-egg", position = Vector3.new(-118.06690979003906, 10.743536949157715, 9.143298149108887) },
@@ -1205,12 +1280,12 @@ local competitiveTasksList = {
     { taskDescription = "Hatch 2 Mythic Pets", todo = "Hatch", egg = "spikey-egg", priority = 4, task , autoReroll = 1},
 
 
-    { taskDescription = "Hatch 50 Shiny Pets", todo = "Hatch", egg = "common-egg", priority = 5, task , autoReroll = 0},
-    { taskDescription = "Hatch 80 Shiny Pets", todo = "Hatch", egg = "common-egg", priority = 5, task , autoReroll = 0},
+    { taskDescription = "Hatch 50 Shiny Pets", todo = "Hatch", egg = "100m-egg", priority = 5, task , autoReroll = 0},
+    { taskDescription = "Hatch 80 Shiny Pets", todo = "Hatch", egg = "100m-egg", priority = 5, task , autoReroll = 0},
     
 
-    { taskDescription = "Hatch 1,500 Eggs", todo = "Hatch", egg = "common-egg", priority = 6, task , autoReroll = 1},
-    { taskDescription = "Hatch 2,500 Eggs", todo = "Hatch", egg = "common-egg", priority = 6, task , autoReroll = 1},
+    { taskDescription = "Hatch 1,500 Eggs", todo = "Hatch", egg = "100m-egg", priority = 6, task , autoReroll = 1},
+    { taskDescription = "Hatch 2,500 Eggs", todo = "Hatch", egg = "100m-egg", priority = 6, task , autoReroll = 1},
 
 
     { taskDescription = "Play for 10 minutes", todo = "Bubble", egg = "", priority = 7, task , autoReroll = 1},
@@ -1339,21 +1414,39 @@ function doCompTask(task)
 
     local taskProgress = tonumber(task.task.Content.Bar.Label.ContentText:sub(1, -2))
     local lastTaskProgress
+    local unchangedTime = 0
+    local timeoutTime = 5
+    local waitTime = 1
+
     while taskStates["Auto Comp Tasks"] do
         if lastTaskProgress and lastTaskProgress > taskProgress then
             -- finshih with task new checking
             print("Finished Task:", task.taskDescription)
             break
         end
+        if lastTaskProgress == taskProgress then
+            unchangedTime = unchangedTime + waitTime
+        else
+            unchangedTime = 0
+        end
+
+        if unchangedTime > timeoutTime then
+            print("Task Timed Out:", task.taskDescription)
+            break
+        end
+
         lastTaskProgress = taskProgress
         taskProgress = tonumber(task.task.Content.Bar.Label.ContentText:sub(1, -2))
         print("Task: " .. task.taskDescription .. " Progress:", taskProgress .. "%")
-        wait(1)
+        wait(waitTime)
     end
 end
 
 function autoCompTasks()
     task.spawn(function()
+        startLightNoClip()
+        local oldPos = Workspace.Worlds["The Overworld"].FastTravel.Root.Position
+        Workspace.Worlds["The Overworld"].FastTravel.Root.Position = Vector3.new(0, -10, 0)
         while taskStates["Auto Comp Tasks"] do
             print("Looking for new Task")
             local bestTask = getBestTask()
@@ -1362,6 +1455,8 @@ function autoCompTasks()
                 doCompTask(bestTask)
             end
         end
+        restoreLightNoClip()
+        Workspace.Worlds["The Overworld"].FastTravel.Root.Position = oldPos
     end)
 end
 
@@ -1593,6 +1688,10 @@ createCheckbox("Auto Comp Tasks", false, function()
     autoCompTasks()
 end, "Auto Competitive Tasks\n<Turn Game English>\n<Go to spawn egg circle\ncause walking, no noclip>")
 
+createCheckbox("Light no clip", false, function()
+    lightNoClip()
+end)
+
 createCheckbox("Blow Bubble", true, function()
     blowBubble()
 end)
@@ -1687,6 +1786,7 @@ local eggPositions = {
     -- GONE EASTER 2025{ displayName = "[Event] Bunny Egg", name = "event-1", position = Vector3.new(-404.39666748046875, 12013.29296875, -61.605796813964844) },
     -- GONE EASTER 2025{ displayName = "[Event] Pastel Egg", name = "event-2", position = Vector3.new(-395.2763977050781, 12013.009765625, -59.971031188964844) },
     -- GONE EASTER 2025{ displayName = "[Event] Throwback Egg", name = "event-3", position = Vector3.new(-382.8701477050781, 12013.009765625, -58.511295318603516) },
+    { displayName = "[Event] 100M Egg", name = "100m-egg", position = Vector3.new(17.14812469482422, 10.15925121307373, -3.9271082878112793) },
     { displayName = "Common Egg", name = "common-egg", position = Vector3.new(-7.299672603607178, 10.2268648147583, -82.11334228515625) },
     { displayName = "Spotted Egg", name = "spotted-egg", position = Vector3.new(-7.268064022064209, 10.2268648147583, -71.30366516113281) },
     { displayName = "Iceshard Egg", name = "iceshard-egg", position = Vector3.new(-7.1924262046813965, 10.2268648147583, -60.178550720214844) },
