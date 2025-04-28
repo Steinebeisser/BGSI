@@ -1218,6 +1218,7 @@ end
 
 local eggPositionsEggFarm = {
     { displayName = "[Event] 100M Egg", name = "100m-egg", position = Vector3.new(17.14812469482422, 10.15925121307373, -3.9271082878112793) },
+    { displayName = "[Event] Throwback Egg", name = "event-3", position = Vector3.new(-127.79013061523438, 10.743536949157715, -59.448570251464844) },
     { displayName = "Common Egg", name = "common-egg", position = Vector3.new(-83.8525619506836, 10.743536949157715, 3.0177695751190186) },
     { displayName = "Spotted Egg", name = "spotted-egg", position = Vector3.new(-93.11441040039062, 10.743536949157715, 8.814620018005371) },
     { displayName = "Iceshard Egg", name = "iceshard-egg", position = Vector3.new(-118.06690979003906, 10.743536949157715, 9.143298149108887) },
@@ -1271,7 +1272,7 @@ local competitiveTasksList = {
     { taskDescription = "Hatch 650 Rainbow Eggs", todo = "Hatch", egg = "rainbow-egg", priority = 3, task , autoReroll = 0},
 
 
-    { taskDescription = "Hatch 200 Common Pets", todo = "Hatch", egg = "common-egg", priority = 4, task , autoReroll = 0},
+    { taskDescription = "Hatch 200 Common Pets", todo = "Hatch", egg = "event-3", priority = 4, task , autoReroll = 0},
     { taskDescription = "Hatch 200 Uncommon Pets", todo = "Hatch", egg = "magma-egg", priority = 4, task , autoReroll = 0},
     { taskDescription = "Hatch 200 Rare Pets", todo = "Hatch", egg = "iceshard-egg", priority = 4, task , autoReroll = 0},
     { taskDescription = "Hatch 120 Epic Pets", todo = "Hatch", egg = "spikey-egg", priority = 4, task , autoReroll = 0},
@@ -1280,12 +1281,12 @@ local competitiveTasksList = {
     { taskDescription = "Hatch 2 Mythic Pets", todo = "Hatch", egg = "spikey-egg", priority = 4, task , autoReroll = 1},
 
 
-    { taskDescription = "Hatch 50 Shiny Pets", todo = "Hatch", egg = "100m-egg", priority = 5, task , autoReroll = 0},
-    { taskDescription = "Hatch 80 Shiny Pets", todo = "Hatch", egg = "100m-egg", priority = 5, task , autoReroll = 0},
+    { taskDescription = "Hatch 50 Shiny Pets", todo = "Hatch", egg = "event-3", priority = 5, task , autoReroll = 0},
+    { taskDescription = "Hatch 80 Shiny Pets", todo = "Hatch", egg = "event-3", priority = 5, task , autoReroll = 0},
     
 
-    { taskDescription = "Hatch 1,500 Eggs", todo = "Hatch", egg = "100m-egg", priority = 6, task , autoReroll = 1},
-    { taskDescription = "Hatch 2,500 Eggs", todo = "Hatch", egg = "100m-egg", priority = 6, task , autoReroll = 1},
+    { taskDescription = "Hatch 1,500 Eggs", todo = "Hatch", egg = "event-3", priority = 6, task , autoReroll = 1},
+    { taskDescription = "Hatch 2,500 Eggs", todo = "Hatch", egg = "event-3", priority = 6, task , autoReroll = 1},
 
 
     { taskDescription = "Play for 10 minutes", todo = "Bubble", egg = "", priority = 7, task , autoReroll = 1},
@@ -1454,6 +1455,7 @@ function autoCompTasks()
                 hasCompTask = true
                 doCompTask(bestTask)
             end
+            task.wait(0.1)
         end
         restoreLightNoClip()
         Workspace.Worlds["The Overworld"].FastTravel.Root.Position = oldPos
